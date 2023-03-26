@@ -16,14 +16,14 @@ public class Collection
     private OrgFreedesktopSecretCollection _collectionProxy;
 
     private Connection _connection;
-    private ObjectPath _sessionPath;
+    private Session _session;
 
     public ObjectPath CollectionPath { get; }
 
-    internal Collection(Connection connection, OrgFreedesktopSecretService serviceProxy, ObjectPath sessionPath, ObjectPath collectionPath)
+    internal Collection(Connection connection, Session session, ObjectPath collectionPath)
     {
         _connection = connection;
-        _sessionPath = sessionPath;
+        _session = session;
         CollectionPath = collectionPath;
 
         _collectionProxy = new OrgFreedesktopSecretCollection(connection, ServiceName, collectionPath);
@@ -45,7 +45,7 @@ public class Collection
         ObjectPath[] matchedItemPaths = await _collectionProxy.SearchItemsAsync(lookupAttributes);
 
         return matchedItemPaths
-            .Select(itemPath => new Item(_connection, _sessionPath, itemPath))
+            .Select(itemPath => new Item(_connection, _session, itemPath))
             .ToList();
     }
 }

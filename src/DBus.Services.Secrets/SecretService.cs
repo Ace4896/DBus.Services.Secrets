@@ -14,14 +14,14 @@ public class SecretService
     private OrgFreedesktopSecretService _serviceProxy;
 
     private Connection _connection;
-    private ObjectPath _sessionPath;
+    private Session _session;
 
-    internal SecretService(Connection connection, OrgFreedesktopSecretService serviceProxy, ObjectPath sessionPath)
+    internal SecretService(Connection connection, Session session)
     {
         _connection = connection;
-        _sessionPath = sessionPath;
+        _session = session;
 
-        _serviceProxy = serviceProxy;
+        _serviceProxy = new OrgFreedesktopSecretService(connection, ServiceName, ServicePath);
     }
 
     /// <summary>
@@ -36,10 +36,12 @@ public class SecretService
 
         OrgFreedesktopSecretService serviceProxy = new(connection, ServiceName, ServicePath);
         
+        // TODO: AES IV needs to go in session, not sure where it goes yet
         (string algorithm, DBusVariantItem input) = GetSessionParameters(encryptionType);
         (_, ObjectPath sessionPath) = await serviceProxy.OpenSessionAsync(algorithm, input);
+        Session session = new(sessionPath);
 
-        return new SecretService(connection, serviceProxy, sessionPath);
+        return new SecretService(connection, session);
     }
 
     // TODO: DH Encryption Type
@@ -65,7 +67,7 @@ public class SecretService
             return null;
         }
 
-        return new Collection(_connection, _serviceProxy, _sessionPath, collectionPath);
+        return new Collection(_connection, _session, collectionPath);
     }
 
     /// <summary>

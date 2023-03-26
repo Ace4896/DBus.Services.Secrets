@@ -14,14 +14,14 @@ public class Item
     private OrgFreedesktopSecretItem _itemProxy;
 
     private Connection _connection;
-    private ObjectPath _sessionPath;
+    private Session _session;
 
     public ObjectPath ItemPath { get; }
 
-    internal Item(Connection connection, ObjectPath sessionPath, ObjectPath itemPath)
+    internal Item(Connection connection, Session session, ObjectPath itemPath)
     {
         _connection = connection;
-        _sessionPath = sessionPath;
+        _session = session;
         ItemPath = itemPath;
 
         _itemProxy = new OrgFreedesktopSecretItem(connection, ServiceName, itemPath);
@@ -39,7 +39,7 @@ public class Item
     /// <returns>The secret associated with this item.</returns>
     public async Task<byte[]> GetSecretAsync()
     {
-        Secret secret = await _itemProxy.GetSecretAsync(_sessionPath);
+        Secret secret = await _itemProxy.GetSecretAsync(_session.SessionPath);
 
         // TODO: When using DH encryption, other steps are needed to decrypt the secret
         return secret.Value;
