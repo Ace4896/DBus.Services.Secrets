@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="../../xml-definitions/Secrets.xml" DBusGeneratorMode="Proxy" />
+    <AdditionalFiles Include="./xml-definitions/Secrets.xml" DBusGeneratorMode="Proxy" />
   </ItemGroup>
 
   <ItemGroup>

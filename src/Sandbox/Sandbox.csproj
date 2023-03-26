@@ -5,6 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../DBus.Secrets/DBus.Secrets.csproj" />
+    <ProjectReference Include="../DBus.Services.Codegen/DBus.Services.Codegen.csproj" />
   </ItemGroup>
 </Project>
