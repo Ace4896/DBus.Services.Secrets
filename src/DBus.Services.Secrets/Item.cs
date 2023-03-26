@@ -9,8 +9,6 @@ namespace DBus.Services.Secrets;
 /// </summary>
 public class Item
 {
-    private const string ServiceName = "org.freedesktop.secrets";
-
     private OrgFreedesktopSecretItem _itemProxy;
 
     private Connection _connection;
@@ -24,7 +22,7 @@ public class Item
         _session = session;
         ItemPath = itemPath;
 
-        _itemProxy = new OrgFreedesktopSecretItem(connection, ServiceName, itemPath);
+        _itemProxy = new OrgFreedesktopSecretItem(connection, Constants.ServiceName, itemPath);
     }
 
     /// <summary>

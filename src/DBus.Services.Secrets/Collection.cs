@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,8 +12,6 @@ namespace DBus.Services.Secrets;
 /// </summary>
 public class Collection
 {
-    private const string ServiceName = "org.freedesktop.secrets";
-
     private OrgFreedesktopSecretCollection _collectionProxy;
 
     private Connection _connection;
@@ -26,7 +25,7 @@ public class Collection
         _session = session;
         CollectionPath = collectionPath;
 
-        _collectionProxy = new OrgFreedesktopSecretCollection(connection, ServiceName, collectionPath);
+        _collectionProxy = new OrgFreedesktopSecretCollection(connection, Constants.ServiceName, collectionPath);
     }
 
     /// <summary>
@@ -34,6 +33,51 @@ public class Collection
     /// </summary>
     /// <returns><see langword="true"/> if this <see cref="Collection"/> is currently locked, <see langword="false"/> otherwise.</returns>
     public async Task<bool> IsLockedAsync() => await _collectionProxy.GetLockedAsync();
+
+    /// <summary>
+    /// Creates an item in this collection.
+    /// </summary>
+    /// <param name="label">The label for the new item.</param>
+    /// <param name="lookupAttributes">The lookup attributes to associate with the new item.</param>
+    /// <param name="secret">The secret value to store.</param>
+    /// <param name="contentType">The content type of the secret value.</param>
+    /// <param name="replace">Whether to replace an existing item with the same lookup attributes.</param>
+    /// <returns>The created <see cref="Item"/>, or <see langword="null"/> if it could not be created (e.g. prompt was dismissed).</returns>
+    public async Task<Item?> CreateItemAsync(string label, Dictionary<string, string> lookupAttributes, byte[] secret, string contentType, bool replace)
+    {
+        // TODO: DH encryption requires algorithm parameters - need to retrieve from session
+        Secret secretStruct = (_session.SessionPath, Array.Empty<byte>(), secret, contentType);
+        
+        DBusArrayItem lookupAttributesArray = new(
+            DBusType.DictEntry,
+            lookupAttributes.Select(kvp => new DBusDictEntryItem(new DBusStringItem(kvp.Key), new DBusStringItem(kvp.Value)))
+        );
+
+        Dictionary<string, DBusVariantItem> properties = new()
+        {
+            { Constants.ItemLabelProperty, new("s", new DBusStringItem(label)) },
+            { Constants.ItemAttributesProperty, new("a{ss}", lookupAttributesArray) },
+        };
+
+        (ObjectPath newItemPath, ObjectPath promptPath) = await _collectionProxy.CreateItemAsync(properties, secretStruct, replace);
+        if (newItemPath == "/")
+        {
+            (bool dismissed, DBusVariantItem promptResult) = await Utilities.PromptAsync(_connection, promptPath);
+            if (dismissed)
+            {
+                return null;
+            }
+
+            if (promptResult.Value is not DBusObjectPathItem promptResultPathItem)
+            {
+                return null;
+            }
+
+            newItemPath = promptResultPathItem.Value;
+        }
+
+        return new Item(_connection, _session, newItemPath);
+    }
 
     /// <summary>
     /// Searches for items in this <see cref="Collection"/> that match the specified lookup attributes.

@@ -6,11 +6,6 @@ namespace DBus.Services.Secrets;
 
 public class SecretService
 {
-    private const string ServiceName = "org.freedesktop.secrets";
-    private const string ServicePath = "/org/freedesktop/secrets";
-
-    private const string DefaultCollectionAlias = "default";
-
     private OrgFreedesktopSecretService _serviceProxy;
 
     private Connection _connection;
@@ -21,7 +16,7 @@ public class SecretService
         _connection = connection;
         _session = session;
 
-        _serviceProxy = new OrgFreedesktopSecretService(connection, ServiceName, ServicePath);
+        _serviceProxy = new OrgFreedesktopSecretService(connection, Constants.ServiceName, Constants.ServicePath);
     }
 
     /// <summary>
@@ -34,7 +29,7 @@ public class SecretService
         Connection connection = new(Address.Session!);
         await connection.ConnectAsync();
 
-        OrgFreedesktopSecretService serviceProxy = new(connection, ServiceName, ServicePath);
+        OrgFreedesktopSecretService serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
         
         // TODO: AES IV needs to go in session, not sure where it goes yet
         (string algorithm, DBusVariantItem input) = GetSessionParameters(encryptionType);
@@ -74,7 +69,7 @@ public class SecretService
     /// Retrieves the collection with the default alias.
     /// </summary>
     /// <returns>The <see cref="Collection"/> with the default alias, or <see langword="null"/> if no default collection exists.</returns>
-    public Task<Collection?> GetDefaultCollectionAsync() => GetCollectionByAliasAsync(DefaultCollectionAlias);
+    public Task<Collection?> GetDefaultCollectionAsync() => GetCollectionByAliasAsync(Constants.DefaultCollectionAlias);
 
     /// <summary>
     /// Locks the specified <see cref="Collection"/>.
@@ -110,31 +105,7 @@ public class SecretService
 
         if (promptPath != "/")
         {
-            await PromptAsync(promptPath);
+            await Utilities.PromptAsync(_connection, promptPath);
         }
-    }
-
-    private async Task<(bool dismissed, DBusVariantItem result)> PromptAsync(ObjectPath path)
-    {
-        TaskCompletionSource<(bool, DBusVariantItem)> tcs = new();
-        OrgFreedesktopSecretPrompt promptProxy = new(_connection, ServiceName, path);
-
-        await promptProxy.WatchCompletedAsync(
-            (exception, result) =>
-            {
-                if (exception != null)
-                {
-                    tcs.TrySetException(exception);
-                }
-                else
-                {
-                    tcs.TrySetResult(result);
-                }
-            }
-        );
-
-        await promptProxy.PromptAsync(string.Empty);
-
-        return await tcs.Task;
     }
 }
