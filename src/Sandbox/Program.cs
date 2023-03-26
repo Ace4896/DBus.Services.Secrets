@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DBus.Services.Secrets;
 using Tmds.DBus.Protocol;
 using Tmds.DBus.SourceGenerator;
 
@@ -17,182 +18,256 @@ public sealed class Program
 
     public static async Task Main(string[] args)
     {
-        // Attempt at replicating my example using the default collection
         Console.WriteLine("Establishing D-Bus session connection...");
-
-        using var connection = new Connection(Address.Session!);
-        await connection.ConnectAsync();
-        var peerName = connection.UniqueName ?? string.Empty;
-
-        Console.WriteLine($"Connected to D-Bus (peer name: {peerName})");
-
-        Console.WriteLine("Opening new session with 'plain' transport encryption...");
-
-        // Open a session with 'plain' text encryption
-        // The input parameter is just an empty string (need to input a variant which is a bit annoying...)
-        // The signature in the DBusVariantItem is important - it indicates the type
-        // https://dbus.freedesktop.org/doc/dbus-specification.html#type-system
-        var serviceProxy = new OrgFreedesktopSecretService(connection, ServiceName, ServicePath);
-        (_, var sessionPath) = await serviceProxy.OpenSessionAsync("plain", new DBusVariantItem("s", new DBusStringItem(string.Empty)));
-
-        Console.WriteLine($"Opened session at path '{sessionPath}'");
+        SecretService secretService = await SecretService.ConnectAsync(EncryptionType.Plain);
+        Console.WriteLine("Connected to D-Bus Secret Service API");
 
         Console.WriteLine("Retrieving default collection...");
-        var defaultCollectionPath = await serviceProxy.ReadAliasAsync(DefaultCollectionAlias);
-        if (defaultCollectionPath == "/")
+        Collection? defaultCollection = await secretService.GetDefaultCollectionAsync();
+
+        if (defaultCollection == null)
         {
-            Console.WriteLine("Default collection does not exist, exiting");
+            Console.WriteLine("Could not retrieve default collection, exiting");
             return;
         }
 
-        Console.WriteLine($"Retrieved default collection (object path: {defaultCollectionPath})");
+        Console.WriteLine("Retrieved default collection");
 
-        Console.WriteLine("Checking if collection is locked...");
-
-        var defaultCollectionProxy = new OrgFreedesktopSecretCollection(connection, ServiceName, defaultCollectionPath);
-        if (await defaultCollectionProxy.GetLockedAsync())
+        if (await defaultCollection.IsLockedAsync())
         {
             Console.WriteLine("Collection is locked, unlocking...");
-
-            (_, var unlockPromptPath) = await serviceProxy.UnlockAsync(new[] { defaultCollectionPath });
-
-            if (unlockPromptPath != "/")
-            {
-                Console.WriteLine("Prompt required to unlock");
-                (var dismissed, _) = await PromptAsync(connection, unlockPromptPath);
-                if (dismissed)
-                {
-                    Console.WriteLine("Prompt for unlocking collection dismissed, exiting");
-                    return;
-                }
-            }
-
-            Console.WriteLine("Collection unlocked");
-        }
-        else
-        {
-            Console.WriteLine("Collection is already unlocked");
+            await secretService.UnlockAsync(defaultCollection);
+            Console.WriteLine("Unlocked collection");
         }
 
-        Console.WriteLine("Creating new secret value...");
-
-        // TODO: Constructing these is a bit more difficult due to stricter types...
-        const string itemLabel = "SecretValueLabel";
+        Console.WriteLine("Searching for items...");
 
         var lookupAttributes = new Dictionary<string, string>()
         {
             { "my-lookup-attribute", "my-lookup-attribute-value" }
         };
 
-        // The source generator code is a bit trickier to use
-        // It requires knowledge of type signatures to work correctly
-        // To add a "dictionary" into a variant type, we have to convert the dictionary into an array of dictionary items
-        // Then the type signature would be 'a{<keytype><valuetype>}' - in our case, 'a{ss}' for an array of dictionary items with string keys + values
-        var lookupAttributesArray = new DBusArrayItem(
-            DBusType.DictEntry,
-            lookupAttributes.Select(kvp => new DBusDictEntryItem(new DBusStringItem(kvp.Key), new DBusStringItem(kvp.Value)))
-        );
-
-        var algoParams = Array.Empty<byte>();
-
-        const string secretValue = "whoa it's the new secret value";
-        var secretBytes = Encoding.UTF8.GetBytes(secretValue);
-
-        const string contentType = "text/plain; charset=utf8";
-
-        var secret = (sessionPath, algoParams, secretBytes, contentType);
-
-        var createItemParams = new Dictionary<string, DBusVariantItem>()
+        List<Item> matchedItems = await defaultCollection.SearchItemsAsync(lookupAttributes);
+        
+        if (matchedItems.Count == 0)
         {
-            { "org.freedesktop.Secret.Item.Label", new DBusVariantItem("s", new DBusStringItem(itemLabel)) },
-            { "org.freedesktop.Secret.Item.Attributes", new DBusVariantItem("a{ss}", lookupAttributesArray) },
-        };
-
-        (var newItemPath, var newItemPromptPath) = await defaultCollectionProxy.CreateItemAsync(createItemParams, secret, true);
-        if (newItemPath == "/")
-        {
-            Console.WriteLine("Prompt required to create new item");
-
-            (var dismissed, _) = await PromptAsync(connection, newItemPromptPath);
-            if (dismissed)
-            {
-                Console.WriteLine("Prompt to create new item dismissed, exiting");
-                return;
-            }
-        }
-
-        Console.WriteLine("Created new secret value");
-
-        Console.WriteLine("Searching for matching secret values...");
-
-        var matchedItemPaths = await defaultCollectionProxy.SearchItemsAsync(lookupAttributes);
-
-        if (matchedItemPaths.Length == 0)
-        {
-            Console.WriteLine("No matching items");
+            Console.WriteLine("Could not find any matching items");
         }
         else
         {
-            foreach (var matchedItemPath in matchedItemPaths)
+            foreach (Item item in matchedItems)
             {
-                Console.WriteLine($"Found matching item at {matchedItemPath}");
-                var matchedItemProxy = new OrgFreedesktopSecretItem(connection, ServiceName, matchedItemPath);
+                Console.WriteLine($"Found item at object path {item.ItemPath}");
 
-                Console.WriteLine("Checking if item is locked...");
-                if (await matchedItemProxy.GetLockedAsync())
+                if (await item.IsLockedAsync())
                 {
                     Console.WriteLine("Item is locked, unlocking...");
-                    (_, var unlockPromptPath) = await serviceProxy.UnlockAsync(new[] { matchedItemPath });
-
-                    if (unlockPromptPath != "/")
-                    {
-                        Console.WriteLine("Prompt required to unlock item");
-                        (var dismissed, _) = await PromptAsync(connection, unlockPromptPath);
-                        if (dismissed)
-                        {
-                            Console.WriteLine("Prompt for unlocking item dismissed, skipping");
-                            continue;
-                        }
-                    }
-
-                    Console.WriteLine("Item unlocked");
+                    await secretService.UnlockAsync(item);
+                    Console.WriteLine("Unlocked item");
                 }
 
-                (_, _, var matchedItemBytes, _) = await matchedItemProxy.GetSecretAsync(sessionPath);
-                var matchedItemValue = Encoding.UTF8.GetString(matchedItemBytes);
+                byte[] secret = await item.GetSecretAsync();
+                string secretString = Encoding.UTF8.GetString(secret);
+                Console.WriteLine($"Secret Value: {secretString}");
 
-                Console.WriteLine($"Matched item value: {matchedItemValue}");
+                if (!await item.IsLockedAsync())
+                {
+                    Console.WriteLine("Locking item...");
+                    await secretService.LockAsync(item);
+                    Console.WriteLine("Locked item");
+                }
             }
         }
 
-        Console.WriteLine("Finished, press any key to exit");
+        if (!await defaultCollection.IsLockedAsync())
+        {
+            Console.WriteLine("Locking default collection...");
+            await secretService.LockAsync(defaultCollection);
+            Console.WriteLine("Locked default collection");
+        }
+
+        Console.WriteLine("Finished; press any key to exit");
         Console.ReadKey();
     }
 
-    private static async Task<(bool, DBusVariantItem)> PromptAsync(Connection connection, ObjectPath path)
-    {
-        var tcs = new TaskCompletionSource<(bool, DBusVariantItem)>();
-        var promptProxy = new OrgFreedesktopSecretPrompt(connection, ServiceName, path);
+    // public static async Task Main(string[] args)
+    // {
+    //     // Attempt at replicating my example using the default collection
+    //     Console.WriteLine("Establishing D-Bus session connection...");
 
-        // TODO: I don't know if the subscription will be leaked out... need to be careful about this
-        // Looking at Avalonia's source code, it looks like I don't have to do anything?
-        await promptProxy.WatchCompletedAsync(
-            (exception, result) =>
-            {
-                if (exception != null)
-                {
-                    tcs.TrySetException(exception);
-                }
-                else
-                {
-                    tcs.TrySetResult(result);
-                }
-            }
-        );
+    //     using var connection = new Connection(Address.Session!);
+    //     await connection.ConnectAsync();
+    //     var peerName = connection.UniqueName ?? string.Empty;
 
-        // TODO: Pass window ID as needed
-        await promptProxy.PromptAsync("");
+    //     Console.WriteLine($"Connected to D-Bus (peer name: {peerName})");
 
-        return await tcs.Task;
-    }
+    //     Console.WriteLine("Opening new session with 'plain' transport encryption...");
+
+    //     // Open a session with 'plain' text encryption
+    //     // The input parameter is just an empty string (need to input a variant which is a bit annoying...)
+    //     // The signature in the DBusVariantItem is important - it indicates the type
+    //     // https://dbus.freedesktop.org/doc/dbus-specification.html#type-system
+    //     var serviceProxy = new OrgFreedesktopSecretService(connection, ServiceName, ServicePath);
+    //     (_, var sessionPath) = await serviceProxy.OpenSessionAsync("plain", new DBusVariantItem("s", new DBusStringItem(string.Empty)));
+
+    //     Console.WriteLine($"Opened session at path '{sessionPath}'");
+
+    //     Console.WriteLine("Retrieving default collection...");
+    //     var defaultCollectionPath = await serviceProxy.ReadAliasAsync(DefaultCollectionAlias);
+    //     if (defaultCollectionPath == "/")
+    //     {
+    //         Console.WriteLine("Default collection does not exist, exiting");
+    //         return;
+    //     }
+
+    //     Console.WriteLine($"Retrieved default collection (object path: {defaultCollectionPath})");
+
+    //     Console.WriteLine("Checking if collection is locked...");
+
+    //     var defaultCollectionProxy = new OrgFreedesktopSecretCollection(connection, ServiceName, defaultCollectionPath);
+    //     if (await defaultCollectionProxy.GetLockedAsync())
+    //     {
+    //         Console.WriteLine("Collection is locked, unlocking...");
+
+    //         (_, var unlockPromptPath) = await serviceProxy.UnlockAsync(new[] { defaultCollectionPath });
+
+    //         if (unlockPromptPath != "/")
+    //         {
+    //             Console.WriteLine("Prompt required to unlock");
+    //             (var dismissed, _) = await PromptAsync(connection, unlockPromptPath);
+    //             if (dismissed)
+    //             {
+    //                 Console.WriteLine("Prompt for unlocking collection dismissed, exiting");
+    //                 return;
+    //             }
+    //         }
+
+    //         Console.WriteLine("Collection unlocked");
+    //     }
+    //     else
+    //     {
+    //         Console.WriteLine("Collection is already unlocked");
+    //     }
+
+    //     Console.WriteLine("Creating new secret value...");
+
+    //     // TODO: Constructing these is a bit more difficult due to stricter types...
+    //     const string itemLabel = "SecretValueLabel";
+
+    //     var lookupAttributes = new Dictionary<string, string>()
+    //     {
+    //         { "my-lookup-attribute", "my-lookup-attribute-value" }
+    //     };
+
+    //     // The source generator code is a bit trickier to use
+    //     // It requires knowledge of type signatures to work correctly
+    //     // To add a "dictionary" into a variant type, we have to convert the dictionary into an array of dictionary items
+    //     // Then the type signature would be 'a{<keytype><valuetype>}' - in our case, 'a{ss}' for an array of dictionary items with string keys + values
+    //     var lookupAttributesArray = new DBusArrayItem(
+    //         DBusType.DictEntry,
+    //         lookupAttributes.Select(kvp => new DBusDictEntryItem(new DBusStringItem(kvp.Key), new DBusStringItem(kvp.Value)))
+    //     );
+
+    //     var algoParams = Array.Empty<byte>();
+
+    //     const string secretValue = "whoa it's the new secret value";
+    //     var secretBytes = Encoding.UTF8.GetBytes(secretValue);
+
+    //     const string contentType = "text/plain; charset=utf8";
+
+    //     var secret = (sessionPath, algoParams, secretBytes, contentType);
+
+    //     var createItemParams = new Dictionary<string, DBusVariantItem>()
+    //     {
+    //         { "org.freedesktop.Secret.Item.Label", new DBusVariantItem("s", new DBusStringItem(itemLabel)) },
+    //         { "org.freedesktop.Secret.Item.Attributes", new DBusVariantItem("a{ss}", lookupAttributesArray) },
+    //     };
+
+    //     (var newItemPath, var newItemPromptPath) = await defaultCollectionProxy.CreateItemAsync(createItemParams, secret, true);
+    //     if (newItemPath == "/")
+    //     {
+    //         Console.WriteLine("Prompt required to create new item");
+
+    //         (var dismissed, _) = await PromptAsync(connection, newItemPromptPath);
+    //         if (dismissed)
+    //         {
+    //             Console.WriteLine("Prompt to create new item dismissed, exiting");
+    //             return;
+    //         }
+    //     }
+
+    //     Console.WriteLine("Created new secret value");
+
+    //     Console.WriteLine("Searching for matching secret values...");
+
+    //     var matchedItemPaths = await defaultCollectionProxy.SearchItemsAsync(lookupAttributes);
+
+    //     if (matchedItemPaths.Length == 0)
+    //     {
+    //         Console.WriteLine("No matching items");
+    //     }
+    //     else
+    //     {
+    //         foreach (var matchedItemPath in matchedItemPaths)
+    //         {
+    //             Console.WriteLine($"Found matching item at {matchedItemPath}");
+    //             var matchedItemProxy = new OrgFreedesktopSecretItem(connection, ServiceName, matchedItemPath);
+
+    //             Console.WriteLine("Checking if item is locked...");
+    //             if (await matchedItemProxy.GetLockedAsync())
+    //             {
+    //                 Console.WriteLine("Item is locked, unlocking...");
+    //                 (_, var unlockPromptPath) = await serviceProxy.UnlockAsync(new[] { matchedItemPath });
+
+    //                 if (unlockPromptPath != "/")
+    //                 {
+    //                     Console.WriteLine("Prompt required to unlock item");
+    //                     (var dismissed, _) = await PromptAsync(connection, unlockPromptPath);
+    //                     if (dismissed)
+    //                     {
+    //                         Console.WriteLine("Prompt for unlocking item dismissed, skipping");
+    //                         continue;
+    //                     }
+    //                 }
+
+    //                 Console.WriteLine("Item unlocked");
+    //             }
+
+    //             (_, _, var matchedItemBytes, _) = await matchedItemProxy.GetSecretAsync(sessionPath);
+    //             var matchedItemValue = Encoding.UTF8.GetString(matchedItemBytes);
+
+    //             Console.WriteLine($"Matched item value: {matchedItemValue}");
+    //         }
+    //     }
+
+    //     Console.WriteLine("Finished, press any key to exit");
+    //     Console.ReadKey();
+    // }
+
+    // private static async Task<(bool, DBusVariantItem)> PromptAsync(Connection connection, ObjectPath path)
+    // {
+    //     var tcs = new TaskCompletionSource<(bool, DBusVariantItem)>();
+    //     var promptProxy = new OrgFreedesktopSecretPrompt(connection, ServiceName, path);
+
+    //     // TODO: I don't know if the subscription will be leaked out... need to be careful about this
+    //     // Looking at Avalonia's source code, it looks like I don't have to do anything?
+    //     await promptProxy.WatchCompletedAsync(
+    //         (exception, result) =>
+    //         {
+    //             if (exception != null)
+    //             {
+    //                 tcs.TrySetException(exception);
+    //             }
+    //             else
+    //             {
+    //                 tcs.TrySetResult(result);
+    //             }
+    //         }
+    //     );
+
+    //     // TODO: Pass window ID as needed
+    //     await promptProxy.PromptAsync("");
+
+    //     return await tcs.Task;
+    // }
 }
