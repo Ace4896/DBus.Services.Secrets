@@ -21,7 +21,7 @@ internal class DhKeypair
         0xF4, 0x4C, 0x42, 0xE9, 0xA6, 0x37, 0xED, 0x6B, 0x0B, 0xFF, 0x5C, 0xB6, 0xF4, 0x06, 0xB7, 0xED,
         0xEE, 0x38, 0x6B, 0xFB, 0x5A, 0x89, 0x9F, 0xA5, 0xAE, 0x9F, 0x24, 0x11, 0x7C, 0x4B, 0x1F, 0xE6,
         0x49, 0x28, 0x66, 0x51, 0xEC, 0xE6, 0x53, 0x81, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    });
+    }, true, true);
 
     public BigInteger PublicKey { get; }
     public BigInteger PrivateKey { get; }
@@ -44,7 +44,7 @@ internal class DhKeypair
         // Setup input key material for HKDF
         // Left pad the unsigned, big endian bytes from common secret
         byte[] inputKeyMaterial = new byte[128];
-        Span<byte> commonSecretSpan = inputKeyMaterial.AsSpan(128 - commonSecret.GetByteCount());
+        Span<byte> commonSecretSpan = inputKeyMaterial.AsSpan(128 - commonSecret.GetByteCount(true));
         commonSecret.TryWriteBytes(commonSecretSpan, out var _, true, true);
 
         // Run HKDF with SHA256, null salt and empty info, returning a 128 bit (16 byte) key for AES

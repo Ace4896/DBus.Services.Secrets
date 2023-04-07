@@ -65,7 +65,11 @@ public class SecretService
             throw new InvalidCastException("Could not retrieve server DH public key bytes");
         }
 
-        byte[] serverPublicKeyBytes = sessionOutputArray.Cast<byte>().ToArray();
+        byte[] serverPublicKeyBytes = sessionOutputArray
+            .Cast<DBusByteItem>()
+            .Select(b => b.Value)
+            .ToArray();
+            
         byte[] aesKey = dhKeypair.DeriveSharedSecret(serverPublicKeyBytes);
 
         return new Session(sessionPath, aesKey);
