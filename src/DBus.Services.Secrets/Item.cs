@@ -39,7 +39,13 @@ public class Item
     {
         Secret secret = await _itemProxy.GetSecretAsync(_session.SessionPath);
 
-        // TODO: When using DH encryption, other steps are needed to decrypt the secret
-        return secret.Value;
+        if (_session.IsEncryptedSession)
+        {
+            return _session.Decrypt(secret.Value, secret.Parameters);
+        }
+        else
+        {
+            return secret.Value;
+        }
     }
 }

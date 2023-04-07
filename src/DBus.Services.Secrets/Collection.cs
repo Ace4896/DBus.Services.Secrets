@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Tmds.DBus.Protocol;
 using Tmds.DBus.SourceGenerator;
@@ -45,8 +46,21 @@ public class Collection
     /// <returns>The created <see cref="Item"/>, or <see langword="null"/> if it could not be created (e.g. prompt was dismissed).</returns>
     public async Task<Item?> CreateItemAsync(string label, Dictionary<string, string> lookupAttributes, byte[] secret, string contentType, bool replace)
     {
-        // TODO: DH encryption requires algorithm parameters - need to retrieve from session
-        Secret secretStruct = (_session.SessionPath, Array.Empty<byte>(), secret, contentType);
+        Secret secretStruct;
+        
+        if (_session.IsEncryptedSession)
+        {
+            // Using DH encryption; generate new 16 byte AES IV
+            byte[] aesIv = RandomNumberGenerator.GetBytes(16);
+            byte[] encryptedSecret = _session.Encrypt(secret, aesIv);
+
+            secretStruct = (_session.SessionPath, aesIv, encryptedSecret, contentType);
+        }
+        else
+        {
+            // Using plain encryption
+            secretStruct = (_session.SessionPath, Array.Empty<byte>(), secret, contentType);
+        }
         
         DBusArrayItem lookupAttributesArray = new(
             DBusType.DictEntry,

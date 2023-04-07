@@ -11,7 +11,7 @@ public sealed class Program
     public static async Task Main(string[] args)
     {
         Console.WriteLine("Connecting to D-Bus Secret Service API...");
-        SecretService secretService = await SecretService.ConnectAsync(EncryptionType.Plain);
+        SecretService secretService = await SecretService.ConnectAsync(EncryptionType.DH);
         Console.WriteLine("Connected to D-Bus Secret Service API");
 
         Console.WriteLine("Retrieving default collection...");

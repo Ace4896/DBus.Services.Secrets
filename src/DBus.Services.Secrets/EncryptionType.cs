@@ -6,4 +6,5 @@ namespace DBus.Services.Secrets;
 public enum EncryptionType
 {
     Plain,
+    DH,
 }

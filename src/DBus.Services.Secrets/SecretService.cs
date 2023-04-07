@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Tmds.DBus.Protocol;
 using Tmds.DBus.SourceGenerator;
@@ -30,22 +32,43 @@ public class SecretService
         await connection.ConnectAsync();
 
         OrgFreedesktopSecretService serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
-        
-        // TODO: AES IV needs to go in session, not sure where it goes yet
-        (string algorithm, DBusVariantItem input) = GetSessionParameters(encryptionType);
-        (_, ObjectPath sessionPath) = await serviceProxy.OpenSessionAsync(algorithm, input);
-        Session session = new(sessionPath);
+
+        // Open a new session based on the provided input type
+        Session session = encryptionType switch
+        {
+            EncryptionType.Plain => await OpenPlainSessionAsync(serviceProxy),
+            EncryptionType.DH => await OpenDhSessionAsync(serviceProxy),
+            _ => throw new NotImplementedException($"{encryptionType} encryption type not implemented")
+        };
 
         return new SecretService(connection, session);
     }
 
-    // TODO: DH Encryption Type
-    private static (string algorithm, DBusVariantItem input) GetSessionParameters(EncryptionType encryptionType)
+    private static async Task<Session> OpenPlainSessionAsync(OrgFreedesktopSecretService serviceProxy)
     {
-        const string algorithm = "plain";
-        DBusVariantItem input = new("s", new DBusStringItem(string.Empty));
+        (_, ObjectPath sessionPath) = await serviceProxy.OpenSessionAsync(Constants.SessionAlgorithmPlain, Constants.SessionInputPlain);
+        return new Session(sessionPath);
+    }
 
-        return (algorithm, input);
+    private static async Task<Session> OpenDhSessionAsync(OrgFreedesktopSecretService serviceProxy)
+    {
+        // Input for a DH encrypted session is our DH public key
+        // Output from OpenSession call is service's DH public key
+        DhKeypair dhKeypair = new();
+        byte[] clientPublicKeyBytes = dhKeypair.PublicKey.ToByteArray(true, true);  // Unsigned, big endian
+
+        DBusVariantItem sessionInput = new("ay", new DBusArrayItem(DBusType.Byte, clientPublicKeyBytes.Select(b => new DBusByteItem(b))));
+        (DBusVariantItem sessionOutput, ObjectPath sessionPath) = await serviceProxy.OpenSessionAsync(Constants.SessionAlgorithmDh, sessionInput);
+
+        if (sessionOutput.Value is not DBusArrayItem { ArrayType: DBusType.Byte } sessionOutputArray)
+        {
+            throw new InvalidCastException("Could not retrieve server DH public key bytes");
+        }
+
+        byte[] serverPublicKeyBytes = sessionOutputArray.Cast<byte>().ToArray();
+        byte[] aesKey = dhKeypair.DeriveSharedSecret(serverPublicKeyBytes);
+
+        return new Session(sessionPath, aesKey);
     }
 
     /// <summary>
