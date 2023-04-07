@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DBus.Services.Secrets;
 
-namespace Sandbox;
+namespace Sandbox.Secrets;
 
 public sealed class Program
 {
