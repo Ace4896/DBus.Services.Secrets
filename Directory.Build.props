@@ -4,10 +4,4 @@
     <Nullable>enable</Nullable>
     <WarningsAsErrors>nullable</WarningsAsErrors>
   </PropertyGroup>
-
-  <!-- Polyfill for .NET Standard -->
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'">
-    <PackageReference Include="IsExternalInit" PrivateAssets="all" />
-    <PackageReference Include="Nullable" PrivateAssets="all" />
-  </ItemGroup>
 </Project>

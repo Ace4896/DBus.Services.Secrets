@@ -8,7 +8,7 @@ The following bindings are provided:
 
 ## Requirements
 
-The bindings target .NET Standard 2.0, .NET Standard 2.1 and .NET 6.0.
+The bindings target .NET 6.0.
 
 ## Usage
 
