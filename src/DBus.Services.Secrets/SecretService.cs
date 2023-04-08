@@ -64,42 +64,4 @@ public sealed class SecretService
     /// </summary>
     /// <returns>The <see cref="Collection"/> with the default alias, or <see langword="null"/> if no default collection exists.</returns>
     public Task<Collection?> GetDefaultCollectionAsync() => GetCollectionByAliasAsync(Constants.DefaultCollectionAlias);
-
-    /// <summary>
-    /// Locks the specified <see cref="Collection"/>.
-    /// </summary>
-    /// <param name="collection">The <see cref="Collection"/> to lock.</param>
-    public Task LockAsync(Collection collection) => LockOrUnlockAsync(true, collection.CollectionPath);
-
-    /// <summary>
-    /// Locks the specified <see cref="Item"/>.
-    /// </summary>
-    /// <param name="item">The <see cref="Item"/> to lock.</param>
-    public Task LockAsync(Item item) => LockOrUnlockAsync(true, item.ItemPath);
-
-    /// <summary>
-    /// Unlocks the specified <see cref="Collection"/>.
-    /// </summary>
-    /// <param name="collection">The <see cref="Collection"/> to unlock.</param>
-    public Task UnlockAsync(Collection collection) => LockOrUnlockAsync(false, collection.CollectionPath);
-
-    /// <summary>
-    /// Unlocks the specified <see cref="Item"/>.
-    /// </summary>
-    /// <param name="item">The <see cref="Item"/> to unlock.</param>
-    public Task UnlockAsync(Item item) => LockOrUnlockAsync(false, item.ItemPath);
-
-    private async Task LockOrUnlockAsync(bool newLockedValue, params ObjectPath[] objectPaths)
-    {
-        (_, ObjectPath promptPath) = newLockedValue switch
-        {
-            false => await _serviceProxy.UnlockAsync(objectPaths),
-            true => await _serviceProxy.LockAsync(objectPaths),
-        };
-
-        if (promptPath != "/")
-        {
-            await Utilities.PromptAsync(_connection, promptPath);
-        }
-    }
 }

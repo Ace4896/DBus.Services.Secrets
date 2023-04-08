@@ -24,14 +24,6 @@ public sealed class Program
         }
 
         Console.WriteLine("Retrieved default collection");
-
-        if (await defaultCollection.IsLockedAsync())
-        {
-            Console.WriteLine("Collection is locked, unlocking...");
-            await secretService.UnlockAsync(defaultCollection);
-            Console.WriteLine("Unlocked collection");
-        }
-
         Console.WriteLine("Creating new secret value...");
 
         const string label = "SecretValueLabel";
@@ -67,32 +59,10 @@ public sealed class Program
             foreach (Item item in matchedItems)
             {
                 Console.WriteLine($"Found item at object path {item.ItemPath}");
-
-                if (await item.IsLockedAsync())
-                {
-                    Console.WriteLine("Item is locked, unlocking...");
-                    await secretService.UnlockAsync(item);
-                    Console.WriteLine("Unlocked item");
-                }
-
                 byte[] secret = await item.GetSecretAsync();
                 string secretString = Encoding.UTF8.GetString(secret);
                 Console.WriteLine($"Secret Value: {secretString}");
-
-                if (!await item.IsLockedAsync())
-                {
-                    Console.WriteLine("Locking item...");
-                    await secretService.LockAsync(item);
-                    Console.WriteLine("Locked item");
-                }
             }
-        }
-
-        if (!await defaultCollection.IsLockedAsync())
-        {
-            Console.WriteLine("Locking default collection...");
-            await secretService.LockAsync(defaultCollection);
-            Console.WriteLine("Locked default collection");
         }
 
         Console.WriteLine("Finished; press any key to exit");

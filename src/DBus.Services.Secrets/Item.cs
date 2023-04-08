@@ -33,11 +33,26 @@ public sealed class Item
     public async Task<bool> IsLockedAsync() => await _itemProxy.GetLockedAsync();
 
     /// <summary>
-    /// Gets the secret associated with this item.
+    /// Locks this <see cref="Item"/>, prompting the user if necessary.
+    /// </summary>
+    public async Task LockAsync() => await Utilities.LockOrUnlockAsync(_connection, true, ItemPath);
+
+    /// <summary>
+    /// Unlocks this <see cref="Item"/>, prompting the user if necessary.
+    /// </summary>
+    public async Task UnlockAsync() => await Utilities.LockOrUnlockAsync(_connection, false, ItemPath);
+
+    /// <summary>
+    /// Gets the secret associated with this item, unlocking the item if needed.
     /// </summary>
     /// <returns>The secret associated with this item.</returns>
     public async Task<byte[]> GetSecretAsync()
     {
+        if (await IsLockedAsync())
+        {
+            await UnlockAsync();
+        }
+
         Secret secret = await _itemProxy.GetSecretAsync(_session.SessionPath);
         return _session.DecryptSecret(ref secret);
     }

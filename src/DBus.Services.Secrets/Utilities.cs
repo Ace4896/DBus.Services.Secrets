@@ -10,6 +10,28 @@ namespace DBus.Services.Secrets;
 internal static class Utilities
 {
     /// <summary>
+    /// Locks or unlocks the specified object paths, prompting the user where necessary.
+    /// </summary>
+    /// <param name="connection">The current <see cref="Connection"/>.</param>
+    /// <param name="newLockedValue">Whether the items should be locked or unlocked.</param>
+    /// <param name="objectPaths">The <see cref="ObjectPath"/>s to lock or unlock.</param>
+    public static async Task LockOrUnlockAsync(Connection connection, bool newLockedValue, params ObjectPath[] objectPaths)
+    {
+        OrgFreedesktopSecretService serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
+
+        (_, ObjectPath promptPath) = newLockedValue switch
+        {
+            false => await serviceProxy.UnlockAsync(objectPaths),
+            true => await serviceProxy.LockAsync(objectPaths),
+        };
+
+        if (promptPath != "/")
+        {
+            await Utilities.PromptAsync(connection, promptPath);
+        }
+    }
+
+    /// <summary>
     /// Displays a prompt required by the secret service using the specified window handle.
     /// </summary>
     /// <param name="connection">The current <see cref="Connection"/> in use.</param>

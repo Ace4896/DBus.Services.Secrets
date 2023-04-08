@@ -35,7 +35,17 @@ public sealed class Collection
     public async Task<bool> IsLockedAsync() => await _collectionProxy.GetLockedAsync();
 
     /// <summary>
-    /// Creates an item in this collection.
+    /// Attempts to lock this <see cref="Collection"/>, prompting the user if necessary.
+    /// </summary>
+    public async Task LockAsync() => await Utilities.LockOrUnlockAsync(_connection, true, CollectionPath);
+
+    /// <summary>
+    /// Attempts to unlock this <see cref="Collection"/>, prompting the user if necessary.
+    /// </summary>
+    public async Task UnlockAsync() => await Utilities.LockOrUnlockAsync(_connection, false, CollectionPath);
+
+    /// <summary>
+    /// Creates an item in this <see cref="Collection"/>, unlocking the collection if necessary.
     /// </summary>
     /// <param name="label">The label for the new item.</param>
     /// <param name="lookupAttributes">The lookup attributes to associate with the new item.</param>
@@ -57,6 +67,11 @@ public sealed class Collection
             { Constants.ItemLabelProperty, new("s", new DBusStringItem(label)) },
             { Constants.ItemAttributesProperty, new("a{ss}", lookupAttributesArray) },
         };
+
+        if (await IsLockedAsync())
+        {
+            await UnlockAsync();
+        }
 
         (ObjectPath newItemPath, ObjectPath promptPath) = await _collectionProxy.CreateItemAsync(properties, secretStruct, replace);
         if (newItemPath == "/")
