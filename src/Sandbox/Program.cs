@@ -48,9 +48,9 @@ public sealed class Program
 
         Console.WriteLine("Searching for items...");
 
-        List<Item> matchedItems = await defaultCollection.SearchItemsAsync(lookupAttributes);
+        Item[] matchedItems = await defaultCollection.SearchItemsAsync(lookupAttributes);
         
-        if (matchedItems.Count == 0)
+        if (matchedItems.Length == 0)
         {
             Console.WriteLine("Could not find any matching items");
         }

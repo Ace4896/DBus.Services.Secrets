@@ -28,11 +28,50 @@ public sealed class Collection
         _collectionProxy = new OrgFreedesktopSecretCollection(connection, Constants.ServiceName, collectionPath);
     }
 
+    #region D-Bus Properties
+
+    /// <summary>
+    /// Gets all <see cref="Item"/>s in this collection.
+    /// </summary>
+    /// <returns>An array containing all <see cref="Item"/>s in this collection.</returns>
+    public async Task<Item[]> GetItemsAsync() =>
+        (await _collectionProxy.GetItemsAsync())
+            .Select(itemPath => new Item(_connection, _session, itemPath))
+            .ToArray();
+
+    /// <summary>
+    /// Gets the displayed label for this collection.
+    /// </summary>
+    /// <returns>The displayed label for this collection.</returns>
+    public async Task<string> GetLabelAsync() => await _collectionProxy.GetLabelAsync();
+
+    /// <summary>
+    /// Sets the displayed label for this collection.
+    /// </summary>
+    /// <param name="label">The new label to use.</param>
+    public async Task SetLabelAsync(string label) => await _collectionProxy.SetLabelAsync(label);
+
     /// <summary>
     /// Checks whether this <see cref="Collection"/> is currently locked.
     /// </summary>
     /// <returns><see langword="true"/> if this <see cref="Collection"/> is currently locked, <see langword="false"/> otherwise.</returns>
     public async Task<bool> IsLockedAsync() => await _collectionProxy.GetLockedAsync();
+
+    /// <summary>
+    /// Gets the unix timestamp of when this <see cref="Collection"/> was created.
+    /// </summary>
+    /// <returns>The unix timestamp of when this <see cref="Collection"/> was created.</returns>
+    public async Task<ulong> GetCreatedAsync() => await _collectionProxy.GetCreatedAsync();
+
+    /// <summary>
+    /// Gets the unix timestamp of when this <see cref="Collection"/> was modified.
+    /// </summary>
+    /// <returns>The unix timestamp of when this <see cref="Collection"/> was modified.</returns>
+    public async Task<ulong> GetModifiedAsync() => await _collectionProxy.GetModifiedAsync();
+
+    #endregion
+
+    #region D-Bus Methods
 
     /// <summary>
     /// Attempts to lock this <see cref="Collection"/>, prompting the user if necessary.
@@ -45,7 +84,34 @@ public sealed class Collection
     public async Task UnlockAsync() => await Utilities.LockOrUnlockAsync(_connection, false, CollectionPath);
 
     /// <summary>
-    /// Creates an item in this <see cref="Collection"/>, unlocking the collection if necessary.
+    /// Deletes this collection, prompting the user if necessary.
+    /// </summary>
+    public async Task DeleteAsync()
+    {
+        ObjectPath promptPath = await _collectionProxy.DeleteAsync();
+
+        if (promptPath != "/")
+        {
+            await Utilities.PromptAsync(_connection, promptPath);
+        }
+    }
+
+    /// <summary>
+    /// Searches for items in this <see cref="Collection"/> that match the specified lookup attributes.
+    /// </summary>
+    /// <param name="lookupAttributes">The lookup attributes to use.</param>
+    /// <returns>The list of <see cref="Item"/>s that match the specified lookup attributes.</returns>
+    public async Task<Item[]> SearchItemsAsync(Dictionary<string, string> lookupAttributes)
+    {
+        ObjectPath[] matchedItemPaths = await _collectionProxy.SearchItemsAsync(lookupAttributes);
+
+        return matchedItemPaths
+            .Select(itemPath => new Item(_connection, _session, itemPath))
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Creates an item in this <see cref="Collection"/>, unlocking it if necessary.
     /// </summary>
     /// <param name="label">The label for the new item.</param>
     /// <param name="lookupAttributes">The lookup attributes to associate with the new item.</param>
@@ -93,17 +159,5 @@ public sealed class Collection
         return new Item(_connection, _session, newItemPath);
     }
 
-    /// <summary>
-    /// Searches for items in this <see cref="Collection"/> that match the specified lookup attributes.
-    /// </summary>
-    /// <param name="lookupAttributes">The lookup attributes to use.</param>
-    /// <returns>The list of <see cref="Item"/>s that match the specified lookup attributes.</returns>
-    public async Task<List<Item>> SearchItemsAsync(Dictionary<string, string> lookupAttributes)
-    {
-        ObjectPath[] matchedItemPaths = await _collectionProxy.SearchItemsAsync(lookupAttributes);
-
-        return matchedItemPaths
-            .Select(itemPath => new Item(_connection, _session, itemPath))
-            .ToList();
-    }
+    #endregion
 }
