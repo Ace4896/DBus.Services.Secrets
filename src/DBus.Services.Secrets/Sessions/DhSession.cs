@@ -11,7 +11,7 @@ namespace DBus.Services.Secrets.Sessions;
 /// <summary>
 /// <see cref="ISession"/> implementation for <see cref="EncryptionType.Dh"/>.
 /// </summary>
-public sealed class DhSession : ISession
+internal sealed class DhSession : ISession
 {
     private readonly byte[] _aesKey;
 
@@ -108,7 +108,7 @@ internal class DhKeypair
         // 128 byte unsigned integer, big endian
         PrivateKey = new BigInteger(RandomNumberGenerator.GetBytes(128), true, true);
 
-        // 2 ^ private key % DH prime
+        // (2 ^ private key) % DH prime
         PublicKey = BigInteger.ModPow(Two, PrivateKey, DhPrime);
     }
 
