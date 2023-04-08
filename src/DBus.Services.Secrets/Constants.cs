@@ -14,6 +14,7 @@ public static class Constants
     public const string SessionAlgorithmDh = "dh-ietf1024-sha256-aes128-cbc-pkcs7";
     public static readonly DBusVariantItem SessionInputPlain = new("s", new DBusStringItem(string.Empty));
 
+    public const string CollectionLabelProperty = "org.freedesktop.Secret.Collection.Label";
     public const string DefaultCollectionAlias = "default";
 
     public const string ItemLabelProperty = "org.freedesktop.Secret.Item.Label";
