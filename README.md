@@ -54,3 +54,7 @@ foreach (Item matchedItem in matchedItems)
     string matchedSecretString = Encoding.UTF8.GetString(secret);   // my secret value
 }
 ```
+
+## License
+
+These bindings are licensed under the [MIT License](./LICENSE.md).
