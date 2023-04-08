@@ -116,13 +116,13 @@ internal class DhKeypair
     {
         // Server public key should be in big endian
         BigInteger serverPublicKey = new(serverPublicKeyBytes, true, true);
-        BigInteger commonSecret = BigInteger.ModPow(serverPublicKey, PrivateKey, DhPrime);
+        BigInteger sharedSecret = BigInteger.ModPow(serverPublicKey, PrivateKey, DhPrime);
 
         // Setup input key material for HKDF
         // Left pad the unsigned, big endian bytes from common secret
         byte[] inputKeyMaterial = new byte[128];
-        Span<byte> commonSecretSpan = inputKeyMaterial.AsSpan(128 - commonSecret.GetByteCount(true));
-        commonSecret.TryWriteBytes(commonSecretSpan, out var _, true, true);
+        Span<byte> sharedSecretSpan = inputKeyMaterial.AsSpan(128 - sharedSecret.GetByteCount(true));
+        sharedSecret.TryWriteBytes(sharedSecretSpan, out var _, true, true);
 
         // Run HKDF with SHA256, null salt and empty info, returning a 128 bit (16 byte) key for AES
         byte[] aesKey = HKDF.DeriveKey(HashAlgorithmName.SHA256, inputKeyMaterial, 16, null, null);
