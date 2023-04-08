@@ -16,6 +16,9 @@ public sealed class Item
     private Connection _connection;
     private ISession _session;
 
+    /// <value>
+    /// The <see cref="ObjectPath"/> to this <see cref="Item"/>.
+    /// </value>
     public ObjectPath ItemPath { get; }
 
     internal Item(Connection connection, ISession session, ObjectPath itemPath)

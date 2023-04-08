@@ -8,6 +8,9 @@ using Tmds.DBus.SourceGenerator;
 
 namespace DBus.Services.Secrets;
 
+/// <summary>
+/// Top-level wrapper over the D-Bus Secret Service API.
+/// </summary>
 public sealed class SecretService
 {
     private OrgFreedesktopSecretService _serviceProxy;

@@ -17,6 +17,9 @@ public sealed class Collection
     private Connection _connection;
     private ISession _session;
 
+    /// <value>
+    /// The <see cref="ObjectPath"/> to this <see cref="Collection"/>.
+    /// </value>
     public ObjectPath CollectionPath { get; }
 
     internal Collection(Connection connection, ISession session, ObjectPath collectionPath)

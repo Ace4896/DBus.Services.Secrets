@@ -5,6 +5,13 @@ namespace DBus.Services.Secrets;
 /// </summary>
 public enum EncryptionType
 {
+    /// <summary>
+    /// Plaintext (i.e. no encryption)
+    /// </summary>
     Plain,
+
+    /// <summary>
+    /// DH Key Agreement
+    /// </summary>
     Dh,
 }
