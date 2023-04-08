@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using DBus.Services.Secrets.Sessions;
 using Tmds.DBus.Protocol;
@@ -31,8 +30,6 @@ public sealed class SecretService
     {
         Connection connection = new(Address.Session!);
         await connection.ConnectAsync();
-
-        OrgFreedesktopSecretService serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
 
         // Open a new session based on the specified encryption type
         ISession session = encryptionType switch

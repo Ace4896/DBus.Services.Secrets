@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using DBus.Services.Secrets.Sessions;
 using Tmds.DBus.Protocol;
@@ -48,7 +46,7 @@ public sealed class Collection
     public async Task<Item?> CreateItemAsync(string label, Dictionary<string, string> lookupAttributes, byte[] secret, string contentType, bool replace)
     {
         Secret secretStruct = _session.FormatSecret(secret, contentType);
-        
+
         DBusArrayItem lookupAttributesArray = new(
             DBusType.DictEntry,
             lookupAttributes.Select(kvp => new DBusDictEntryItem(new DBusStringItem(kvp.Key), new DBusStringItem(kvp.Value)))
