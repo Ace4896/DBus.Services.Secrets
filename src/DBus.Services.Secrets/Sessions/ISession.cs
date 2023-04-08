@@ -5,7 +5,7 @@ namespace DBus.Services.Secrets.Sessions;
 /// <summary>
 /// Interface for classes providing wrapper APIs around sessions.
 /// </summary>
-public interface ISession
+internal interface ISession
 {
     /// <summary>
     /// The <see cref="ObjectPath"/> to this session.
