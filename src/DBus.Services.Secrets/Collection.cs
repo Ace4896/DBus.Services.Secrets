@@ -143,12 +143,7 @@ public sealed class Collection
         if (newItemPath == "/")
         {
             (bool dismissed, DBusVariantItem promptResult) = await Utilities.PromptAsync(_connection, promptPath);
-            if (dismissed)
-            {
-                return null;
-            }
-
-            if (promptResult.Value is not DBusObjectPathItem promptResultPathItem)
+            if (dismissed || promptResult.Value is not DBusObjectPathItem promptResultPathItem)
             {
                 return null;
             }
