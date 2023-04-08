@@ -1,6 +1,6 @@
 # DBus.Services.Secrets
 
-A high-level wrapper over the [D-Bus Secret Service API](https://specifications.freedesktop.org/secret-service/latest/).
+High-level C# bindings over the [D-Bus Secret Service API](https://specifications.freedesktop.org/secret-service/latest/).
 
 ## Basic Usage
 
