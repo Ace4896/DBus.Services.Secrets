@@ -7,7 +7,7 @@ using Tmds.DBus.SourceGenerator;
 
 namespace DBus.Services.Secrets;
 
-public class SecretService
+public sealed class SecretService
 {
     private OrgFreedesktopSecretService _serviceProxy;
 

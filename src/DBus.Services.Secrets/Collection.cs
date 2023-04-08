@@ -12,7 +12,7 @@ namespace DBus.Services.Secrets;
 /// <summary>
 /// Represents a collection of secret items.
 /// </summary>
-public class Collection
+public sealed class Collection
 {
     private OrgFreedesktopSecretCollection _collectionProxy;
 

@@ -8,7 +8,7 @@ namespace DBus.Services.Secrets;
 /// <summary>
 /// Represents an item used by the D-Bus secret service.
 /// </summary>
-public class Item
+public sealed class Item
 {
     private OrgFreedesktopSecretItem _itemProxy;
 
