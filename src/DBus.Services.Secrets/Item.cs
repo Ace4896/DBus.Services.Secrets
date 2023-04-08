@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using DBus.Services.Secrets.Sessions;
 using Tmds.DBus.Protocol;
 using Tmds.DBus.SourceGenerator;
 
@@ -12,11 +13,11 @@ public class Item
     private OrgFreedesktopSecretItem _itemProxy;
 
     private Connection _connection;
-    private Session _session;
+    private ISession _session;
 
     public ObjectPath ItemPath { get; }
 
-    internal Item(Connection connection, Session session, ObjectPath itemPath)
+    internal Item(Connection connection, ISession session, ObjectPath itemPath)
     {
         _connection = connection;
         _session = session;
@@ -38,14 +39,6 @@ public class Item
     public async Task<byte[]> GetSecretAsync()
     {
         Secret secret = await _itemProxy.GetSecretAsync(_session.SessionPath);
-
-        if (_session.IsEncryptedSession)
-        {
-            return _session.Decrypt(secret.Value, secret.Parameters);
-        }
-        else
-        {
-            return secret.Value;
-        }
+        return _session.DecryptSecret(ref secret);
     }
 }

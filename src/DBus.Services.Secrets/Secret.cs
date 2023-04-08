@@ -3,9 +3,9 @@ using Tmds.DBus.Protocol;
 namespace DBus.Services.Secrets;
 
 /// <summary>
-/// Internal wrapper for a secret value used in the D-Bus secret service.
+/// Wrapper for a secret value used in the D-Bus secret service.
 /// </summary>
-internal struct Secret
+public struct Secret
 {
     public ObjectPath SessionPath { get; set; }
     public byte[] Parameters { get; set; }
