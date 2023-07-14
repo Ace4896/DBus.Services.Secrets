@@ -55,6 +55,12 @@ foreach (Item matchedItem in matchedItems)
 }
 ```
 
+## Documentation
+
+The API documentation is auto-generated using [docfx](https://dotnet.github.io/docfx/index.html).
+
+To preview the generated documentation locally, run `docfx docfx_project/docfx.json --serve`, which will serve the website at http://localhost:8080.
+
 ## License
 
 These bindings are licensed under the [MIT License](./LICENSE.md).
