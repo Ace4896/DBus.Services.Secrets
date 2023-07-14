@@ -1,6 +1,6 @@
 # DBus.Services.Secrets
 
-High-level C# bindings over the [D-Bus Secret Service API](https://specifications.freedesktop.org/secret-service/latest/).
+High-level C# bindings for the [D-Bus Secret Service API](https://specifications.freedesktop.org/secret-service/latest/).
 
 These bindings were made using [Tmds.DBus.Protocol](https://github.com/tmds/Tmds.DBus) and [Tmds.DBus.SourceGenerator](https://github.com/affederaffe/Tmds.DBus.SourceGenerator), making them trimmer and AOT friendly.
 
