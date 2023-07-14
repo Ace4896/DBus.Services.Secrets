@@ -4,6 +4,10 @@ High-level .NET bindings for the [D-Bus Secret Service API](https://specificatio
 
 ## Basic Usage
 
+To get started, add a reference to the [`Ace4896.DBus.Services.Secrets` NuGet package](https://www.nuget.org/packages/Ace4896.DBus.Services.Secrets/).
+
+The example below shows how to create and retrieve a secret value in the default collection:
+
 ```csharp
 // Connect to the D-Bus Secret Service API
 // Sessions can use either plaintext or encrypted transport
