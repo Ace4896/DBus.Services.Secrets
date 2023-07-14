@@ -57,7 +57,7 @@ foreach (Item matchedItem in matchedItems)
 
 ## Documentation
 
-The API documentation is auto-generated using [docfx](https://dotnet.github.io/docfx/index.html).
+The API documentation is auto-generated using [docfx](https://dotnet.github.io/docfx/index.html), and can be found [here](https://ace4896.github.io/DBus.Services.Secrets/).
 
 To preview the generated documentation locally, run `docfx docfx_project/docfx.json --serve`, which will serve the website at http://localhost:8080.
 
