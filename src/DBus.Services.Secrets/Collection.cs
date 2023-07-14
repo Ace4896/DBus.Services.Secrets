@@ -38,7 +38,7 @@ public sealed class Collection
     /// </summary>
     /// <returns>An array containing all <see cref="Item"/>s in this collection.</returns>
     public async Task<Item[]> GetItemsAsync() =>
-        (await _collectionProxy.GetItemsAsync())
+        (await _collectionProxy.GetItemsPropertyAsync())
             .Select(itemPath => new Item(_connection, _session, itemPath))
             .ToArray();
 
@@ -46,31 +46,31 @@ public sealed class Collection
     /// Gets the displayed label for this collection.
     /// </summary>
     /// <returns>The displayed label for this collection.</returns>
-    public async Task<string> GetLabelAsync() => await _collectionProxy.GetLabelAsync();
+    public async Task<string> GetLabelAsync() => await _collectionProxy.GetLabelPropertyAsync();
 
     /// <summary>
     /// Sets the displayed label for this collection.
     /// </summary>
     /// <param name="label">The new label to use.</param>
-    public async Task SetLabelAsync(string label) => await _collectionProxy.SetLabelAsync(label);
+    public async Task SetLabelAsync(string label) => await _collectionProxy.SetLabelPropertyAsync(label);
 
     /// <summary>
     /// Checks whether this <see cref="Collection"/> is currently locked.
     /// </summary>
     /// <returns><see langword="true"/> if this <see cref="Collection"/> is currently locked, <see langword="false"/> otherwise.</returns>
-    public async Task<bool> IsLockedAsync() => await _collectionProxy.GetLockedAsync();
+    public async Task<bool> IsLockedAsync() => await _collectionProxy.GetLockedPropertyAsync();
 
     /// <summary>
     /// Gets the unix timestamp of when this <see cref="Collection"/> was created.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Collection"/> was created.</returns>
-    public async Task<ulong> GetCreatedAsync() => await _collectionProxy.GetCreatedAsync();
+    public async Task<ulong> GetCreatedAsync() => await _collectionProxy.GetCreatedPropertyAsync();
 
     /// <summary>
     /// Gets the unix timestamp of when this <see cref="Collection"/> was modified.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Collection"/> was modified.</returns>
-    public async Task<ulong> GetModifiedAsync() => await _collectionProxy.GetModifiedAsync();
+    public async Task<ulong> GetModifiedAsync() => await _collectionProxy.GetModifiedPropertyAsync();
 
     #endregion
 

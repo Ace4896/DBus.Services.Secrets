@@ -33,7 +33,7 @@ public sealed class SecretService
     /// </summary>
     /// <returns>An array containing all <see cref="Collection"/>s.</returns>
     public async Task<Collection[]> GetAllCollectionsAsync() =>
-        (await _serviceProxy.GetCollectionsAsync())
+        (await _serviceProxy.GetCollectionsPropertyAsync())
             .Select(c => new Collection(_connection, _session, c))
             .ToArray();
 
