@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -128,7 +129,7 @@ public sealed class Collection
 
         DBusArrayItem lookupAttributesArray = new(
             DBusType.DictEntry,
-            lookupAttributes.Select(kvp => new DBusDictEntryItem(new DBusStringItem(kvp.Key), new DBusStringItem(kvp.Value)))
+            lookupAttributes.Select(kvp => new DBusDictEntryItem(new DBusStringItem(kvp.Key), new DBusStringItem(kvp.Value))).ToArray()
         );
 
         Dictionary<string, DBusVariantItem> properties = new()

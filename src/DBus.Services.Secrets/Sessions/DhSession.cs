@@ -32,7 +32,7 @@ internal sealed class DhSession : ISession
         DhKeypair dhKeypair = new();
         byte[] clientPublicKeyBytes = dhKeypair.PublicKey.ToByteArray(true, true);  // Unsigned, big endian
 
-        DBusVariantItem sessionInput = new("ay", new DBusArrayItem(DBusType.Byte, clientPublicKeyBytes.Select(b => new DBusByteItem(b))));
+        DBusVariantItem sessionInput = new("ay", new DBusByteArrayItem(clientPublicKeyBytes));
         (DBusVariantItem sessionOutput, ObjectPath sessionPath) = await serviceProxy.OpenSessionAsync(Constants.SessionAlgorithmDh, sessionInput);
 
         if (sessionOutput.Value is not DBusArrayItem { ArrayType: DBusType.Byte } sessionOutputArray)
