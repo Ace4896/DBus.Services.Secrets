@@ -9,6 +9,46 @@ using Tmds.DBus.SourceGenerator;
 namespace DBus.Services.Secrets;
 
 /// <summary>
+/// The properties for a particular <see cref="Collection"/>.
+/// </summary>
+public sealed class CollectionProperties
+{
+    /// <summary>
+    /// All items in this <see cref="Collection"/>.
+    /// </summary>
+    public ObjectPath[] Items { get; } = Array.Empty<ObjectPath>();
+
+    /// <summary>
+    /// The displayed label for this <see cref="Collection"/>.
+    /// </summary>
+    public string Label { get; } = string.Empty;
+
+    /// <summary>
+    /// Whether this <see cref="Collection"/> is currently locked or not.
+    /// </summary>
+    public bool Locked { get; }
+
+    /// <summary>
+    /// The unix timestamp of when this <see cref="Collection"/> was created.
+    /// </summary>
+    public DateTimeOffset Created { get; }
+
+    /// <summary>
+    /// The unix timestamp of when this <see cref="Collection"/> was last modified.
+    /// </summary>
+    public DateTimeOffset Modified { get; }
+
+    internal CollectionProperties(OrgFreedesktopSecretCollection.Properties properties)
+    {
+        Items = properties.Items;
+        Label = properties.Label;
+        Locked = properties.Locked;
+        Created = DateTimeOffset.FromUnixTimeSeconds((long)properties.Created);
+        Modified = DateTimeOffset.FromUnixTimeSeconds((long)properties.Modified);
+    }
+}
+
+/// <summary>
 /// Represents a collection of secret items.
 /// </summary>
 public sealed class Collection
@@ -33,6 +73,12 @@ public sealed class Collection
     }
 
     #region D-Bus Properties
+
+    /// <summary>
+    /// Gets all properties for this <see cref="Collection"/>.
+    /// </summary>
+    /// <returns>All properties for this <see cref="Collection"/>.</returns>
+    public async Task<CollectionProperties> GetAllPropertiesAsync() => new CollectionProperties(await _collectionProxy.GetAllPropertiesAsync());
 
     /// <summary>
     /// Gets all <see cref="Item"/>s in this collection.
@@ -65,13 +111,13 @@ public sealed class Collection
     /// Gets the unix timestamp of when this <see cref="Collection"/> was created.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Collection"/> was created.</returns>
-    public async Task<ulong> GetCreatedAsync() => await _collectionProxy.GetCreatedPropertyAsync();
+    public async Task<DateTimeOffset> GetCreatedAsync() => DateTimeOffset.FromUnixTimeSeconds((long) await _collectionProxy.GetCreatedPropertyAsync());
 
     /// <summary>
-    /// Gets the unix timestamp of when this <see cref="Collection"/> was modified.
+    /// Gets the unix timestamp of when this <see cref="Collection"/> was last modified.
     /// </summary>
-    /// <returns>The unix timestamp of when this <see cref="Collection"/> was modified.</returns>
-    public async Task<ulong> GetModifiedAsync() => await _collectionProxy.GetModifiedPropertyAsync();
+    /// <returns>The unix timestamp of when this <see cref="Collection"/> was last modified.</returns>
+    public async Task<DateTimeOffset> GetModifiedAsync() => DateTimeOffset.FromUnixTimeSeconds((long) await _collectionProxy.GetModifiedPropertyAsync());
 
     #endregion
 

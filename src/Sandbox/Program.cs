@@ -14,6 +14,21 @@ public sealed class Program
         SecretService secretService = await SecretService.ConnectAsync(EncryptionType.Dh);
         Console.WriteLine("Connected to D-Bus Secret Service API");
 
+        Console.WriteLine("Available Collections:");
+
+        foreach (Collection collection in await secretService.GetAllCollectionsAsync())
+        {
+            CollectionProperties properties = await collection.GetAllPropertiesAsync();
+
+            Console.WriteLine($"'{properties.Label}' Collection");
+            Console.WriteLine($"- Path: {collection.CollectionPath}");
+            Console.WriteLine($"- Total Items: {properties.Items.Length}");
+            Console.WriteLine($"- Locked? {properties.Locked}");
+            Console.WriteLine($"- Created on {properties.Created}");
+            Console.WriteLine($"- Last modified on {properties.Modified}");
+            Console.WriteLine();
+        }
+
         Console.WriteLine("Retrieving default collection...");
         Collection? defaultCollection = await secretService.GetDefaultCollectionAsync();
 
@@ -58,10 +73,26 @@ public sealed class Program
         {
             foreach (Item item in matchedItems)
             {
-                Console.WriteLine($"Found item at object path {item.ItemPath}");
+                Console.WriteLine($"Found item at {item.ItemPath}");
+
+                // TODO: Reading all properties seem to fail...
+
+                // ItemProperties properties = await item.GetAllPropertiesAsync();
                 byte[] secret = await item.GetSecretAsync();
                 string secretString = Encoding.UTF8.GetString(secret);
-                Console.WriteLine($"Secret Value: {secretString}");
+
+                // Console.WriteLine($"- Label: {properties.Label}");
+                // Console.WriteLine($"- Locked? {properties.Locked}");
+                // Console.WriteLine($"- Created on {properties.Created.ToLocalTime()}");
+                // Console.WriteLine($"- Last modified on {properties.Modified.ToLocalTime()}");
+                // Console.WriteLine($"- Lookup Attributes: {properties.Attributes.Count}");
+
+                // foreach (KeyValuePair<string, string> lookupAttribute in properties.Attributes)
+                // {
+                //     Console.WriteLine($"  - {lookupAttribute.Key}: {lookupAttribute.Value}");
+                // }
+
+                Console.WriteLine($"Decoded Secret Value: {secretString}");
             }
         }
 
