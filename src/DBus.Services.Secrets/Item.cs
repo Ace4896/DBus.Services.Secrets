@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DBus.Services.Secrets.Sessions;
@@ -5,6 +6,46 @@ using Tmds.DBus.Protocol;
 using Tmds.DBus.SourceGenerator;
 
 namespace DBus.Services.Secrets;
+
+/// <summary>
+/// The properties for a particular <see cref="Item"/>.
+/// </summary>
+public sealed class ItemProperties
+{
+    /// <summary>
+    /// Whether this <see cref="Item"/> is currently locked.
+    /// </summary>
+    public bool Locked { get; }
+
+    /// <summary>
+    /// The lookup attributes associated with this <see cref="Item"/>.
+    /// </summary>
+    public Dictionary<string, string> Attributes { get; } = new();
+
+    /// <summary>
+    /// The displayed label for this <see cref="Item"/>.
+    /// </summary>
+    public string Label { get; } = string.Empty;
+
+    /// <summary>
+    /// The unix timestamp of when this <see cref="Item"/> was created.
+    /// </summary>
+    public DateTimeOffset Created { get; }
+
+    /// <summary>
+    /// The unix timestamp of when this <see cref="Item"/> was last modified.
+    /// </summary>
+    public DateTimeOffset Modified { get; }
+
+    internal ItemProperties(OrgFreedesktopSecretItem.Properties properties)
+    {
+        Locked = properties.Locked;
+        Attributes = properties.Attributes;
+        Label = properties.Label;
+        Created = DateTimeOffset.FromUnixTimeSeconds((long)properties.Created);
+        Modified = DateTimeOffset.FromUnixTimeSeconds((long)properties.Modified);
+    }
+}
 
 /// <summary>
 /// Represents an item used by the D-Bus secret service.
@@ -31,6 +72,12 @@ public sealed class Item
     }
 
     #region D-Bus Properties
+
+    /// <summary>
+    /// Gets all properties for this <see cref="Item"/>.
+    /// </summary>
+    /// <returns>All properties for this <see cref="Item"/>.</returns>
+    public async Task<ItemProperties> GetAllPropertiesAsync() => new ItemProperties(await _itemProxy.GetAllPropertiesAsync());
 
     /// <summary>
     /// Checks whether this <see cref="Item"/> is currently locked.
@@ -69,9 +116,9 @@ public sealed class Item
     public async Task<ulong> GetCreatedAsync() => await _itemProxy.GetCreatedPropertyAsync();
 
     /// <summary>
-    /// Gets the unix timestamp of when this <see cref="Item"/> was modified.
+    /// Gets the unix timestamp of when this <see cref="Item"/> was last modified.
     /// </summary>
-    /// <returns>The unix timestamp of when this <see cref="Item"/> was modified.</returns>
+    /// <returns>The unix timestamp of when this <see cref="Item"/> was last modified.</returns>
     public async Task<ulong> GetModifiedAsync() => await _itemProxy.GetModifiedPropertyAsync();
 
     #endregion
