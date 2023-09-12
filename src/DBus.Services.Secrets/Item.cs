@@ -113,13 +113,13 @@ public sealed class Item
     /// Gets the unix timestamp of when this <see cref="Item"/> was created.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Item"/> was created.</returns>
-    public async Task<ulong> GetCreatedAsync() => await _itemProxy.GetCreatedPropertyAsync();
+    public async Task<DateTimeOffset> GetCreatedAsync() => DateTimeOffset.FromUnixTimeSeconds((long) await _itemProxy.GetCreatedPropertyAsync());
 
     /// <summary>
     /// Gets the unix timestamp of when this <see cref="Item"/> was last modified.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Item"/> was last modified.</returns>
-    public async Task<ulong> GetModifiedAsync() => await _itemProxy.GetModifiedPropertyAsync();
+    public async Task<DateTimeOffset> GetModifiedAsync() => DateTimeOffset.FromUnixTimeSeconds((long) await _itemProxy.GetModifiedPropertyAsync());
 
     #endregion
 

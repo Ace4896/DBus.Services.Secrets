@@ -111,13 +111,13 @@ public sealed class Collection
     /// Gets the unix timestamp of when this <see cref="Collection"/> was created.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Collection"/> was created.</returns>
-    public async Task<ulong> GetCreatedAsync() => await _collectionProxy.GetCreatedPropertyAsync();
+    public async Task<DateTimeOffset> GetCreatedAsync() => DateTimeOffset.FromUnixTimeSeconds((long) await _collectionProxy.GetCreatedPropertyAsync());
 
     /// <summary>
     /// Gets the unix timestamp of when this <see cref="Collection"/> was last modified.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Collection"/> was last modified.</returns>
-    public async Task<ulong> GetModifiedAsync() => await _collectionProxy.GetModifiedPropertyAsync();
+    public async Task<DateTimeOffset> GetModifiedAsync() => DateTimeOffset.FromUnixTimeSeconds((long) await _collectionProxy.GetModifiedPropertyAsync());
 
     #endregion
 
