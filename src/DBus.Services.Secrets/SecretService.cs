@@ -32,18 +32,10 @@ public sealed class SecretService
     /// Gets all <see cref="Collection"/>s.
     /// </summary>
     /// <returns>An array containing all <see cref="Collection"/>s.</returns>
-    public async Task<Collection[]> GetAllCollectionsAsync()
-    {
-        // TODO: Ideally, we'd be retrieving the properties individually, but this seems to crash?
-        // return (await _serviceProxy.GetCollectionsPropertyAsync())
-        //     .Select(c => new Collection(_connection, _session, c))
-        //     .ToArray();
-
-        return (await _serviceProxy.GetAllPropertiesAsync())
-            .Collections
+    public async Task<Collection[]> GetAllCollectionsAsync() =>
+        (await _serviceProxy.GetCollectionsPropertyAsync())
             .Select(c => new Collection(_connection, _session, c))
             .ToArray();
-    }
 
     #endregion
 
