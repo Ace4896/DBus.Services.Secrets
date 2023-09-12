@@ -18,14 +18,24 @@ public sealed class Program
 
         foreach (Collection collection in await secretService.GetAllCollectionsAsync())
         {
-            CollectionProperties properties = await collection.GetAllPropertiesAsync();
+            string label = await collection.GetLabelAsync();
+            Item[] items = await collection.GetItemsAsync();
+            bool locked = await collection.IsLockedAsync();
+            DateTimeOffset created = await collection.GetCreatedAsync();
+            DateTimeOffset modified = await collection.GetModifiedAsync();
 
-            Console.WriteLine($"'{properties.Label}' Collection");
+            Console.WriteLine($"'{label}' Collection");
             Console.WriteLine($"- Path: {collection.CollectionPath}");
-            Console.WriteLine($"- Total Items: {properties.Items.Length}");
-            Console.WriteLine($"- Locked? {properties.Locked}");
-            Console.WriteLine($"- Created on {properties.Created}");
-            Console.WriteLine($"- Last modified on {properties.Modified}");
+            Console.WriteLine($"- Total Items: {items.Length}");
+
+            foreach (Item item in items)
+            {
+                Console.WriteLine($"  - {item.ItemPath}");
+            }
+
+            Console.WriteLine($"- Locked? {locked}");
+            Console.WriteLine($"- Created on {created}");
+            Console.WriteLine($"- Last modified on {modified}");
             Console.WriteLine();
         }
 
@@ -39,9 +49,25 @@ public sealed class Program
         }
 
         Console.WriteLine("Retrieved default collection");
+
+        CollectionProperties defaultCollectionProperties = await defaultCollection.GetAllPropertiesAsync();
+        Console.WriteLine($"- Label: {defaultCollectionProperties.Label}");
+        Console.WriteLine($"- Path: {defaultCollection.CollectionPath}");
+        Console.WriteLine($"- Total Items: {defaultCollectionProperties.Items.Length}");
+
+        foreach (Item item in defaultCollectionProperties.Items)
+        {
+            Console.WriteLine($"  - {item.ItemPath}");
+        }
+
+        Console.WriteLine($"- Locked? {defaultCollectionProperties.Locked}");
+        Console.WriteLine($"- Created on {defaultCollectionProperties.Created}");
+        Console.WriteLine($"- Last modified on {defaultCollectionProperties.Modified}");
+
+        Console.WriteLine();
         Console.WriteLine("Creating new secret value...");
 
-        const string label = "SecretValueLabel";
+        const string secretValueLabel = "SecretValueLabel";
 
         Dictionary<string, string> lookupAttributes = new()
         {
@@ -51,7 +77,7 @@ public sealed class Program
         byte[] secretBytes = Encoding.UTF8.GetBytes("whoa it's the updated secret value");
         const string contentType = "text/plain; charset=utf8";
 
-        Item? createdItem = await defaultCollection.CreateItemAsync(label, lookupAttributes, secretBytes, contentType, true);
+        Item? createdItem = await defaultCollection.CreateItemAsync(secretValueLabel, lookupAttributes, secretBytes, contentType, true);
         if (createdItem is null)
         {
             Console.WriteLine("Could not create item");
@@ -64,7 +90,7 @@ public sealed class Program
         Console.WriteLine("Searching for items...");
 
         Item[] matchedItems = await defaultCollection.SearchItemsAsync(lookupAttributes);
-        
+
         if (matchedItems.Length == 0)
         {
             Console.WriteLine("Could not find any matching items");
@@ -75,24 +101,27 @@ public sealed class Program
             {
                 Console.WriteLine($"Found item at {item.ItemPath}");
 
-                // TODO: Reading all properties seem to fail...
+                string label = await item.GetLabelAsync();
+                bool locked = await item.IsLockedAsync();
+                DateTimeOffset created = await item.GetCreatedAsync();
+                DateTimeOffset modified = await item.GetModifiedAsync();
+                Dictionary<string, string> attributes = await item.GetLookupAttributesAsync();
 
-                // ItemProperties properties = await item.GetAllPropertiesAsync();
                 byte[] secret = await item.GetSecretAsync();
                 string secretString = Encoding.UTF8.GetString(secret);
 
-                // Console.WriteLine($"- Label: {properties.Label}");
-                // Console.WriteLine($"- Locked? {properties.Locked}");
-                // Console.WriteLine($"- Created on {properties.Created.ToLocalTime()}");
-                // Console.WriteLine($"- Last modified on {properties.Modified.ToLocalTime()}");
-                // Console.WriteLine($"- Lookup Attributes: {properties.Attributes.Count}");
+                Console.WriteLine($"- Label: {label}");
+                Console.WriteLine($"- Locked? {locked}");
+                Console.WriteLine($"- Created on {created.ToLocalTime()}");
+                Console.WriteLine($"- Last modified on {modified.ToLocalTime()}");
+                Console.WriteLine($"- Lookup Attributes: {attributes.Count}");
 
-                // foreach (KeyValuePair<string, string> lookupAttribute in properties.Attributes)
-                // {
-                //     Console.WriteLine($"  - {lookupAttribute.Key}: {lookupAttribute.Value}");
-                // }
+                foreach (KeyValuePair<string, string> attribute in attributes)
+                {
+                    Console.WriteLine($"  - {attribute.Key}: {attribute.Value}");
+                }
 
-                Console.WriteLine($"Decoded Secret Value: {secretString}");
+                Console.WriteLine($"- Decoded Secret Value: {secretString}");
             }
         }
 
