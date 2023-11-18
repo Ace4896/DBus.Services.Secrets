@@ -23,6 +23,7 @@ jobs:
           dotnet-version: |
             6.x
             7.x
+            8.x
 
       - name: Restore Dependencies
         run: dotnet restore
