@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -25,29 +24,26 @@ internal sealed class DhSession : ISession
 
     internal static async Task<DhSession> OpenDhSessionAsync(Connection connection)
     {
-        OrgFreedesktopSecretService serviceProxy = new OrgFreedesktopSecretService(connection, Constants.ServiceName, Constants.ServicePath);
+        OrgFreedesktopSecretServiceProxy serviceProxy = new OrgFreedesktopSecretServiceProxy(connection, Constants.ServiceName, Constants.ServicePath);
 
         // Input for a DH encrypted session is our DH public key
         // Output from OpenSession call is service's DH public key
         DhKeypair dhKeypair = new();
         byte[] clientPublicKeyBytes = dhKeypair.PublicKey.ToByteArray(true, true);  // Unsigned, big endian
 
-        DBusVariantItem sessionInput = new("ay", new DBusByteArrayItem(clientPublicKeyBytes));
-        (DBusVariantItem sessionOutput, ObjectPath sessionPath) = await serviceProxy.OpenSessionAsync(Constants.SessionAlgorithmDh, sessionInput);
+        VariantValue sessionInput = VariantValue.Array(clientPublicKeyBytes);
+        (VariantValue sessionOutput, ObjectPath sessionPath) = await serviceProxy.OpenSessionAsync(Constants.SessionAlgorithmDh, sessionInput);
 
-        if (sessionOutput.Value is not DBusArrayItem { ArrayType: DBusType.Byte } sessionOutputArray)
+        try
+        {
+            byte[] serverPublicKeyBytes = sessionOutput.GetArray<byte>();
+            byte[] aesKey = dhKeypair.DeriveSharedSecret(serverPublicKeyBytes);
+            return new DhSession(sessionPath, aesKey);
+        }
+        catch (InvalidOperationException)
         {
             throw new InvalidCastException("Could not retrieve server DH public key bytes");
         }
-
-        byte[] serverPublicKeyBytes = sessionOutputArray
-            .Cast<DBusByteItem>()
-            .Select(b => b.Value)
-            .ToArray();
-
-        byte[] aesKey = dhKeypair.DeriveSharedSecret(serverPublicKeyBytes);
-
-        return new DhSession(sessionPath, aesKey);
     }
 
     public Secret FormatSecret(byte[] data, string contentType)

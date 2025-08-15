@@ -37,7 +37,7 @@ public sealed class ItemProperties
     /// </summary>
     public DateTimeOffset Modified { get; }
 
-    internal ItemProperties(OrgFreedesktopSecretItem.Properties properties)
+    internal ItemProperties(OrgFreedesktopSecretItemProxy.OrgFreedesktopSecretItemProperties properties)
     {
         Locked = properties.Locked;
         Attributes = properties.Attributes;
@@ -52,7 +52,7 @@ public sealed class ItemProperties
 /// </summary>
 public sealed class Item
 {
-    private OrgFreedesktopSecretItem _itemProxy;
+    private OrgFreedesktopSecretItemProxy _itemProxy;
 
     private Connection _connection;
     private ISession _session;
@@ -68,7 +68,7 @@ public sealed class Item
         _session = session;
         ItemPath = itemPath;
 
-        _itemProxy = new OrgFreedesktopSecretItem(connection, Constants.ServiceName, itemPath);
+        _itemProxy = new OrgFreedesktopSecretItemProxy(connection, Constants.ServiceName, itemPath);
     }
 
     #region D-Bus Properties

@@ -13,7 +13,7 @@ namespace DBus.Services.Secrets;
 /// </summary>
 public sealed class SecretService
 {
-    private OrgFreedesktopSecretService _serviceProxy;
+    private OrgFreedesktopSecretServiceProxy _serviceProxy;
 
     private Connection _connection;
     private ISession _session;
@@ -23,7 +23,7 @@ public sealed class SecretService
         _connection = connection;
         _session = session;
 
-        _serviceProxy = new OrgFreedesktopSecretService(connection, Constants.ServiceName, Constants.ServicePath);
+        _serviceProxy = new OrgFreedesktopSecretServiceProxy(connection, Constants.ServiceName, Constants.ServicePath);
     }
 
     #region D-Bus Properties
@@ -70,22 +70,29 @@ public sealed class SecretService
     /// <returns>The created <see cref="Collection"/>, or <see langword="null"/> if it could not be created (e.g. prompt was dismissed).</returns>
     public async Task<Collection?> CreateCollectionAsync(string label, string alias)
     {
-        Dictionary<string, DBusVariantItem> properties = new()
+        Dictionary<string, VariantValue> properties = new()
         {
-            { Constants.CollectionLabelProperty, new("s", new DBusStringItem(label)) },
+            { Constants.CollectionLabelProperty, VariantValue.String(label) },
         };
 
         (ObjectPath collectionPath, ObjectPath promptPath) = await _serviceProxy.CreateCollectionAsync(properties, alias);
 
         if (collectionPath == "/")
         {
-            (bool dismissed, DBusVariantItem promptResult) = await Utilities.PromptAsync(_connection, promptPath);
-            if (dismissed || promptResult.Value is not DBusObjectPathItem promptResultPathItem)
+            (bool dismissed, VariantValue promptResult) = await Utilities.PromptAsync(_connection, promptPath);
+            if (dismissed)
             {
                 return null;
             }
 
-            collectionPath = promptResultPathItem.Value;
+            try
+            {
+                collectionPath = promptResult.GetObjectPathAsString();
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
         }
 
         return new Collection(_connection, _session, collectionPath);
