@@ -17,7 +17,7 @@ internal static class Utilities
     /// <param name="objectPaths">The <see cref="ObjectPath"/>s to lock or unlock.</param>
     public static async Task LockOrUnlockAsync(Connection connection, bool newLockedValue, params ObjectPath[] objectPaths)
     {
-        OrgFreedesktopSecretService serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
+        OrgFreedesktopSecretServiceProxy serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
 
         (_, ObjectPath promptPath) = newLockedValue switch
         {
@@ -38,10 +38,10 @@ internal static class Utilities
     /// <param name="promptPath">The <see cref="ObjectPath"/> of the prompt.</param>
     /// <param name="windowId">The platform-specific window handle for displaying the prompt. Defaults to an empty string.</param>
     /// <returns>The result of the prompt.</returns>
-    public static async Task<(bool dismissed, DBusVariantItem result)> PromptAsync(Connection connection, ObjectPath promptPath, string windowId = "")
+    public static async Task<(bool dismissed, VariantValue result)> PromptAsync(Connection connection, ObjectPath promptPath, string windowId = "")
     {
-        TaskCompletionSource<(bool, DBusVariantItem)> tcs = new();
-        OrgFreedesktopSecretPrompt promptProxy = new(connection, Constants.ServiceName, promptPath);
+        TaskCompletionSource<(bool, VariantValue)> tcs = new();
+        OrgFreedesktopSecretPromptProxy promptProxy = new(connection, Constants.ServiceName, promptPath);
 
         await promptProxy.WatchCompletedAsync(
             (exception, result) =>

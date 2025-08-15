@@ -38,7 +38,7 @@ public sealed class CollectionProperties
     /// </summary>
     public DateTimeOffset Modified { get; }
 
-    internal CollectionProperties(OrgFreedesktopSecretCollection.Properties properties, Connection connection, ISession session)
+    internal CollectionProperties(OrgFreedesktopSecretCollectionProxy.OrgFreedesktopSecretCollectionProperties properties, Connection connection, ISession session)
     {
         Items = properties.Items
             .Select(itemPath => new Item(connection, session, itemPath))
@@ -56,7 +56,7 @@ public sealed class CollectionProperties
 /// </summary>
 public sealed class Collection
 {
-    private OrgFreedesktopSecretCollection _collectionProxy;
+    private OrgFreedesktopSecretCollectionProxy _collectionProxy;
 
     private Connection _connection;
     private ISession _session;
@@ -72,7 +72,7 @@ public sealed class Collection
         _session = session;
         CollectionPath = collectionPath;
 
-        _collectionProxy = new OrgFreedesktopSecretCollection(connection, Constants.ServiceName, collectionPath);
+        _collectionProxy = new OrgFreedesktopSecretCollectionProxy(connection, Constants.ServiceName, collectionPath);
     }
 
     #region D-Bus Properties
@@ -176,15 +176,12 @@ public sealed class Collection
     {
         Secret secretStruct = _session.FormatSecret(secret, contentType);
 
-        DBusArrayItem lookupAttributesArray = new(
-            DBusType.DictEntry,
-            lookupAttributes.Select(kvp => new DBusDictEntryItem(new DBusStringItem(kvp.Key), new DBusStringItem(kvp.Value))).ToArray()
-        );
+        Dict<string, string> lookupAttributesArray = new Dict<string, string>(lookupAttributes);
 
-        Dictionary<string, DBusVariantItem> properties = new()
+        Dictionary<string, VariantValue> properties = new()
         {
-            { Constants.ItemLabelProperty, new("s", new DBusStringItem(label)) },
-            { Constants.ItemAttributesProperty, new("a{ss}", lookupAttributesArray) },
+            { Constants.ItemLabelProperty, VariantValue.String(label) },
+            { Constants.ItemAttributesProperty, lookupAttributesArray.AsVariantValue() },
         };
 
         if (await IsLockedAsync())
@@ -195,13 +192,20 @@ public sealed class Collection
         (ObjectPath newItemPath, ObjectPath promptPath) = await _collectionProxy.CreateItemAsync(properties, secretStruct, replace);
         if (newItemPath == "/")
         {
-            (bool dismissed, DBusVariantItem promptResult) = await Utilities.PromptAsync(_connection, promptPath);
-            if (dismissed || promptResult.Value is not DBusObjectPathItem promptResultPathItem)
+            (bool dismissed, VariantValue promptResult) = await Utilities.PromptAsync(_connection, promptPath);
+            if (dismissed)
             {
                 return null;
             }
 
-            newItemPath = promptResultPathItem.Value;
+            try
+            {
+                newItemPath = promptResult.GetObjectPathAsString();
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
         }
 
         return new Item(_connection, _session, newItemPath);
