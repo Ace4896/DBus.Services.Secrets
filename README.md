@@ -6,7 +6,7 @@ These bindings were made using [Tmds.DBus.Protocol](https://github.com/tmds/Tmds
 
 ## Requirements
 
-The bindings target .NET 6.0, .NET 7.0 and .NET 8.0.
+The bindings currently target .NET 6.0, 7.0, 8.0 and 9.0.
 
 ## Basic Usage
 
