@@ -5,6 +5,6 @@
 
   <ItemGroup>
     <PackageVersion Include="Tmds.DBus.Protocol" Version="0.21.2" />
-    <PackageVersion Include="Tmds.DBus.SourceGenerator" Version="0.0.21" />
+    <PackageVersion Include="Tmds.DBus.SourceGenerator" Version="0.0.22" />
   </ItemGroup>
 </Project>
