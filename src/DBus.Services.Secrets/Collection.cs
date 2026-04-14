@@ -37,18 +37,16 @@ public sealed class CollectionProperties
     /// </summary>
     public DateTimeOffset Modified { get; }
 
-    internal CollectionProperties(Generated.ICollectionProperties properties, DBusConnection connection, ISession session)
+    internal CollectionProperties(Generated.CollectionProperties properties, DBusConnection connection, ISession session)
     {
-        properties.EnsureAllPropertiesSet();
-
-        Items = properties.Items!
+        Items = properties.Items
             .Select(itemPath => new Item(connection, session, itemPath))
             .ToArray();
 
-        Label = properties.Label!;
-        Locked = properties.Locked!.Value;
-        Created = DateTimeOffset.FromUnixTimeSeconds((long)properties.Created!.Value);
-        Modified = DateTimeOffset.FromUnixTimeSeconds((long)properties.Modified!.Value);
+        Label = properties.Label;
+        Locked = properties.Locked;
+        Created = DateTimeOffset.FromUnixTimeSeconds((long)properties.Created);
+        Modified = DateTimeOffset.FromUnixTimeSeconds((long)properties.Modified);
     }
 }
 
@@ -82,7 +80,8 @@ public sealed class Collection
     /// Gets all properties for this <see cref="Collection"/>.
     /// </summary>
     /// <returns>All properties for this <see cref="Collection"/>.</returns>
-    public async Task<CollectionProperties> GetAllPropertiesAsync() => new CollectionProperties(await _collectionProxy.GetPropertiesAsync(), _connection, _session);
+    public async Task<CollectionProperties> GetAllPropertiesAsync() =>
+        new CollectionProperties((await _collectionProxy.GetPropertiesAsync()).EnsureAllPropertiesSet(), _connection, _session);
 
     /// <summary>
     /// Gets all <see cref="Item"/>s in this collection.

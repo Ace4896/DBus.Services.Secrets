@@ -36,15 +36,13 @@ public sealed class ItemProperties
     /// </summary>
     public DateTimeOffset Modified { get; }
 
-    internal ItemProperties(Generated.IItemProperties properties)
+    internal ItemProperties(Generated.ItemProperties properties)
     {
-        properties.EnsureAllPropertiesSet();
-
-        Locked = properties.Locked!.Value;
-        Attributes = properties.Attributes!;
-        Label = properties.Label!;
-        Created = DateTimeOffset.FromUnixTimeSeconds((long)properties.Created!.Value);
-        Modified = DateTimeOffset.FromUnixTimeSeconds((long)properties.Modified!.Value);
+        Locked = properties.Locked;
+        Attributes = properties.Attributes;
+        Label = properties.Label;
+        Created = DateTimeOffset.FromUnixTimeSeconds((long) properties.Created);
+        Modified = DateTimeOffset.FromUnixTimeSeconds((long) properties.Modified);
     }
 }
 
@@ -78,7 +76,8 @@ public sealed class Item
     /// Gets all properties for this <see cref="Item"/>.
     /// </summary>
     /// <returns>All properties for this <see cref="Item"/>.</returns>
-    public async Task<ItemProperties> GetAllPropertiesAsync() => new ItemProperties(await _itemProxy.GetPropertiesAsync());
+    public async Task<ItemProperties> GetAllPropertiesAsync() =>
+        new ItemProperties((await _itemProxy.GetPropertiesAsync()).EnsureAllPropertiesSet());
 
     /// <summary>
     /// Checks whether this <see cref="Item"/> is currently locked.
