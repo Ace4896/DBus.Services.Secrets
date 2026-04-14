@@ -48,7 +48,7 @@ public sealed class SecretService
     /// <returns>A new instance of the <see cref="SecretService"/> class.</returns>
     public static async Task<SecretService> ConnectAsync(EncryptionType encryptionType)
     {
-        DBusConnection connection = new(Address.Session!);
+        DBusConnection connection = new(DBusAddress.Session!);
         await connection.ConnectAsync();
 
         // Open a new session based on the specified encryption type
