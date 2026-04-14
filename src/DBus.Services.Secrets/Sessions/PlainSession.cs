@@ -17,7 +17,7 @@ internal sealed class PlainSession : ISession
         SessionPath = sessionPath;
     }
 
-    internal static async Task<PlainSession> OpenPlainSessionAsync(Connection connection)
+    internal static async Task<PlainSession> OpenPlainSessionAsync(DBusConnection connection)
     {
         OrgFreedesktopSecretServiceProxy serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
         (_, ObjectPath sessionPath) = await serviceProxy.OpenSessionAsync(Constants.SessionAlgorithmPlain, Constants.SessionInputPlain);

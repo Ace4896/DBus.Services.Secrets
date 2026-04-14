@@ -38,7 +38,7 @@ public sealed class CollectionProperties
     /// </summary>
     public DateTimeOffset Modified { get; }
 
-    internal CollectionProperties(OrgFreedesktopSecretCollectionProxy.OrgFreedesktopSecretCollectionProperties properties, Connection connection, ISession session)
+    internal CollectionProperties(OrgFreedesktopSecretCollectionProxy.OrgFreedesktopSecretCollectionProperties properties, DBusConnection connection, ISession session)
     {
         Items = properties.Items
             .Select(itemPath => new Item(connection, session, itemPath))
@@ -58,7 +58,7 @@ public sealed class Collection
 {
     private OrgFreedesktopSecretCollectionProxy _collectionProxy;
 
-    private Connection _connection;
+    private DBusConnection _connection;
     private ISession _session;
 
     /// <value>
@@ -66,7 +66,7 @@ public sealed class Collection
     /// </value>
     public ObjectPath CollectionPath { get; }
 
-    internal Collection(Connection connection, ISession session, ObjectPath collectionPath)
+    internal Collection(DBusConnection connection, ISession session, ObjectPath collectionPath)
     {
         _connection = connection;
         _session = session;

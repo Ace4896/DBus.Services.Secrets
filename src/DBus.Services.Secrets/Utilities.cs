@@ -12,10 +12,10 @@ internal static class Utilities
     /// <summary>
     /// Locks or unlocks the specified object paths, prompting the user where necessary.
     /// </summary>
-    /// <param name="connection">The current <see cref="Connection"/>.</param>
+    /// <param name="connection">The current <see cref="DBusConnection"/>.</param>
     /// <param name="newLockedValue">Whether the items should be locked or unlocked.</param>
     /// <param name="objectPaths">The <see cref="ObjectPath"/>s to lock or unlock.</param>
-    public static async Task LockOrUnlockAsync(Connection connection, bool newLockedValue, params ObjectPath[] objectPaths)
+    public static async Task LockOrUnlockAsync(DBusConnection connection, bool newLockedValue, params ObjectPath[] objectPaths)
     {
         OrgFreedesktopSecretServiceProxy serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
 
@@ -34,11 +34,11 @@ internal static class Utilities
     /// <summary>
     /// Displays a prompt required by the secret service using the specified window handle.
     /// </summary>
-    /// <param name="connection">The current <see cref="Connection"/> in use.</param>
+    /// <param name="connection">The current <see cref="DBusConnection"/> in use.</param>
     /// <param name="promptPath">The <see cref="ObjectPath"/> of the prompt.</param>
     /// <param name="windowId">The platform-specific window handle for displaying the prompt. Defaults to an empty string.</param>
     /// <returns>The result of the prompt.</returns>
-    public static async Task<(bool dismissed, VariantValue result)> PromptAsync(Connection connection, ObjectPath promptPath, string windowId = "")
+    public static async Task<(bool dismissed, VariantValue result)> PromptAsync(DBusConnection connection, ObjectPath promptPath, string windowId = "")
     {
         TaskCompletionSource<(bool, VariantValue)> tcs = new();
         OrgFreedesktopSecretPromptProxy promptProxy = new(connection, Constants.ServiceName, promptPath);
