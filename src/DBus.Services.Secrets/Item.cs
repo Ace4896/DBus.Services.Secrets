@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DBus.Services.Secrets.Sessions;
 using Tmds.DBus.Protocol;
-using Tmds.DBus.SourceGenerator;
 
 namespace DBus.Services.Secrets;
 

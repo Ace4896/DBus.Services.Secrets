@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Tmds.DBus.Protocol;
-using Tmds.DBus.SourceGenerator;
 
 namespace DBus.Services.Secrets;
 
