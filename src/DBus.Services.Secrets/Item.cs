@@ -36,13 +36,15 @@ public sealed class ItemProperties
     /// </summary>
     public DateTimeOffset Modified { get; }
 
-    internal ItemProperties(OrgFreedesktopSecretItemProxy.OrgFreedesktopSecretItemProperties properties)
+    internal ItemProperties(Generated.IItemProperties properties)
     {
-        Locked = properties.Locked;
-        Attributes = properties.Attributes;
-        Label = properties.Label;
-        Created = DateTimeOffset.FromUnixTimeSeconds((long)properties.Created);
-        Modified = DateTimeOffset.FromUnixTimeSeconds((long)properties.Modified);
+        properties.EnsureAllPropertiesSet();
+
+        Locked = properties.Locked!.Value;
+        Attributes = properties.Attributes!;
+        Label = properties.Label!;
+        Created = DateTimeOffset.FromUnixTimeSeconds((long)properties.Created!.Value);
+        Modified = DateTimeOffset.FromUnixTimeSeconds((long)properties.Modified!.Value);
     }
 }
 
@@ -51,7 +53,7 @@ public sealed class ItemProperties
 /// </summary>
 public sealed class Item
 {
-    private OrgFreedesktopSecretItemProxy _itemProxy;
+    private Generated.Item _itemProxy;
 
     private DBusConnection _connection;
     private ISession _session;
@@ -67,7 +69,7 @@ public sealed class Item
         _session = session;
         ItemPath = itemPath;
 
-        _itemProxy = new OrgFreedesktopSecretItemProxy(connection, Constants.ServiceName, itemPath);
+        _itemProxy = new Generated.Item(connection, Constants.ServiceName, itemPath);
     }
 
     #region D-Bus Properties
@@ -76,49 +78,49 @@ public sealed class Item
     /// Gets all properties for this <see cref="Item"/>.
     /// </summary>
     /// <returns>All properties for this <see cref="Item"/>.</returns>
-    public async Task<ItemProperties> GetAllPropertiesAsync() => new ItemProperties(await _itemProxy.GetAllPropertiesAsync());
+    public async Task<ItemProperties> GetAllPropertiesAsync() => new ItemProperties(await _itemProxy.GetPropertiesAsync());
 
     /// <summary>
     /// Checks whether this <see cref="Item"/> is currently locked.
     /// </summary>
     /// <returns><see langword="true"/> if this <see cref="Item"/> is currently locked, <see langword="false"/> otherwise.</returns>
-    public async Task<bool> IsLockedAsync() => await _itemProxy.GetLockedPropertyAsync();
+    public async Task<bool> IsLockedAsync() => await _itemProxy.GetLockedAsync();
 
     /// <summary>
     /// Gets the lookup attributes associated with this <see cref="Item"/>.
     /// </summary>
     /// <returns>The lookup attributes associated with this <see cref="Item"/>.</returns>
-    public async Task<Dictionary<string, string>> GetLookupAttributesAsync() => await _itemProxy.GetAttributesPropertyAsync();
+    public async Task<Dictionary<string, string>> GetLookupAttributesAsync() => await _itemProxy.GetAttributesAsync();
 
     /// <summary>
     /// Sets the lookup attributes associated with this <see cref="Item"/>.
     /// </summary>
     /// <param name="lookupAttributes">The new lookup attributes associated with this <see cref="Item"/>.</param>
-    public async Task SetLookupAttributesAsync(Dictionary<string, string> lookupAttributes) => await _itemProxy.SetAttributesPropertyAsync(lookupAttributes);
+    public async Task SetLookupAttributesAsync(Dictionary<string, string> lookupAttributes) => await _itemProxy.SetAttributesAsync(lookupAttributes);
 
     /// <summary>
     /// Gets the displayed label for this <see cref="Item"/>.
     /// </summary>
     /// <returns>The displayed label for this <see cref="Item"/>.</returns>
-    public async Task<string> GetLabelAsync() => await _itemProxy.GetLabelPropertyAsync();
+    public async Task<string> GetLabelAsync() => await _itemProxy.GetLabelAsync();
 
     /// <summary>
     /// Sets the displayed label for this <see cref="Item"/>.
     /// </summary>
     /// <param name="label">The new displayed label for this <see cref="Item"/>.</param>
-    public async Task SetLabelAsync(string label) => await _itemProxy.SetLabelPropertyAsync(label);
+    public async Task SetLabelAsync(string label) => await _itemProxy.SetLabelAsync(label);
 
     /// <summary>
     /// Gets the unix timestamp of when this <see cref="Item"/> was created.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Item"/> was created.</returns>
-    public async Task<DateTimeOffset> GetCreatedAsync() => DateTimeOffset.FromUnixTimeSeconds((long) await _itemProxy.GetCreatedPropertyAsync());
+    public async Task<DateTimeOffset> GetCreatedAsync() => DateTimeOffset.FromUnixTimeSeconds((long)await _itemProxy.GetCreatedAsync());
 
     /// <summary>
     /// Gets the unix timestamp of when this <see cref="Item"/> was last modified.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Item"/> was last modified.</returns>
-    public async Task<DateTimeOffset> GetModifiedAsync() => DateTimeOffset.FromUnixTimeSeconds((long) await _itemProxy.GetModifiedPropertyAsync());
+    public async Task<DateTimeOffset> GetModifiedAsync() => DateTimeOffset.FromUnixTimeSeconds((long)await _itemProxy.GetModifiedAsync());
 
     #endregion
 

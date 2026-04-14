@@ -12,7 +12,7 @@ namespace DBus.Services.Secrets;
 /// </summary>
 public sealed class SecretService
 {
-    private OrgFreedesktopSecretServiceProxy _serviceProxy;
+    private Generated.Service _serviceProxy;
 
     private DBusConnection _connection;
     private ISession _session;
@@ -22,7 +22,7 @@ public sealed class SecretService
         _connection = connection;
         _session = session;
 
-        _serviceProxy = new OrgFreedesktopSecretServiceProxy(connection, Constants.ServiceName, Constants.ServicePath);
+        _serviceProxy = new Generated.Service(connection, Constants.ServiceName, Constants.ServicePath);
     }
 
     #region D-Bus Properties
@@ -32,7 +32,7 @@ public sealed class SecretService
     /// </summary>
     /// <returns>An array containing all <see cref="Collection"/>s.</returns>
     public async Task<Collection[]> GetAllCollectionsAsync() =>
-        (await _serviceProxy.GetCollectionsPropertyAsync())
+        (await _serviceProxy.GetCollectionsAsync())
             .Select(c => new Collection(_connection, _session, c))
             .ToArray();
 

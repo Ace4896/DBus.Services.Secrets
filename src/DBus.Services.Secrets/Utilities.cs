@@ -16,7 +16,7 @@ internal static class Utilities
     /// <param name="objectPaths">The <see cref="ObjectPath"/>s to lock or unlock.</param>
     public static async Task LockOrUnlockAsync(DBusConnection connection, bool newLockedValue, params ObjectPath[] objectPaths)
     {
-        OrgFreedesktopSecretServiceProxy serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
+        Generated.Service serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
 
         (_, ObjectPath promptPath) = newLockedValue switch
         {
@@ -40,7 +40,7 @@ internal static class Utilities
     public static async Task<(bool dismissed, VariantValue result)> PromptAsync(DBusConnection connection, ObjectPath promptPath, string windowId = "")
     {
         TaskCompletionSource<(bool, VariantValue)> tcs = new();
-        OrgFreedesktopSecretPromptProxy promptProxy = new(connection, Constants.ServiceName, promptPath);
+        Generated.Prompt promptProxy = new(connection, Constants.ServiceName, promptPath);
 
         await promptProxy.WatchCompletedAsync(
             (exception, result) =>
