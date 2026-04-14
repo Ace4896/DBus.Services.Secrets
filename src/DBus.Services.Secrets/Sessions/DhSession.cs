@@ -23,7 +23,7 @@ internal sealed class DhSession : ISession
 
     internal static async Task<DhSession> OpenDhSessionAsync(DBusConnection connection)
     {
-        OrgFreedesktopSecretServiceProxy serviceProxy = new OrgFreedesktopSecretServiceProxy(connection, Constants.ServiceName, Constants.ServicePath);
+        Generated.Service serviceProxy = new(connection, Constants.ServiceName, Constants.ServicePath);
 
         // Input for a DH encrypted session is our DH public key
         // Output from OpenSession call is service's DH public key

@@ -37,16 +37,18 @@ public sealed class CollectionProperties
     /// </summary>
     public DateTimeOffset Modified { get; }
 
-    internal CollectionProperties(OrgFreedesktopSecretCollectionProxy.OrgFreedesktopSecretCollectionProperties properties, DBusConnection connection, ISession session)
+    internal CollectionProperties(Generated.ICollectionProperties properties, DBusConnection connection, ISession session)
     {
-        Items = properties.Items
+        properties.EnsureAllPropertiesSet();
+
+        Items = properties.Items!
             .Select(itemPath => new Item(connection, session, itemPath))
             .ToArray();
 
-        Label = properties.Label;
-        Locked = properties.Locked;
-        Created = DateTimeOffset.FromUnixTimeSeconds((long)properties.Created);
-        Modified = DateTimeOffset.FromUnixTimeSeconds((long)properties.Modified);
+        Label = properties.Label!;
+        Locked = properties.Locked!.Value;
+        Created = DateTimeOffset.FromUnixTimeSeconds((long)properties.Created!.Value);
+        Modified = DateTimeOffset.FromUnixTimeSeconds((long)properties.Modified!.Value);
     }
 }
 
@@ -55,7 +57,7 @@ public sealed class CollectionProperties
 /// </summary>
 public sealed class Collection
 {
-    private OrgFreedesktopSecretCollectionProxy _collectionProxy;
+    private Generated.Collection _collectionProxy;
 
     private DBusConnection _connection;
     private ISession _session;
@@ -71,7 +73,7 @@ public sealed class Collection
         _session = session;
         CollectionPath = collectionPath;
 
-        _collectionProxy = new OrgFreedesktopSecretCollectionProxy(connection, Constants.ServiceName, collectionPath);
+        _collectionProxy = new Generated.Collection(connection, Constants.ServiceName, collectionPath);
     }
 
     #region D-Bus Properties
@@ -80,14 +82,14 @@ public sealed class Collection
     /// Gets all properties for this <see cref="Collection"/>.
     /// </summary>
     /// <returns>All properties for this <see cref="Collection"/>.</returns>
-    public async Task<CollectionProperties> GetAllPropertiesAsync() => new CollectionProperties(await _collectionProxy.GetAllPropertiesAsync(), _connection, _session);
+    public async Task<CollectionProperties> GetAllPropertiesAsync() => new CollectionProperties(await _collectionProxy.GetPropertiesAsync(), _connection, _session);
 
     /// <summary>
     /// Gets all <see cref="Item"/>s in this collection.
     /// </summary>
     /// <returns>An array containing all <see cref="Item"/>s in this collection.</returns>
     public async Task<Item[]> GetItemsAsync() =>
-        (await _collectionProxy.GetItemsPropertyAsync())
+        (await _collectionProxy.GetItemsAsync())
             .Select(itemPath => new Item(_connection, _session, itemPath))
             .ToArray();
 
@@ -95,31 +97,31 @@ public sealed class Collection
     /// Gets the displayed label for this collection.
     /// </summary>
     /// <returns>The displayed label for this collection.</returns>
-    public async Task<string> GetLabelAsync() => await _collectionProxy.GetLabelPropertyAsync();
+    public async Task<string> GetLabelAsync() => await _collectionProxy.GetLabelAsync();
 
     /// <summary>
     /// Sets the displayed label for this collection.
     /// </summary>
     /// <param name="label">The new label to use.</param>
-    public async Task SetLabelAsync(string label) => await _collectionProxy.SetLabelPropertyAsync(label);
+    public async Task SetLabelAsync(string label) => await _collectionProxy.SetLabelAsync(label);
 
     /// <summary>
     /// Checks whether this <see cref="Collection"/> is currently locked.
     /// </summary>
     /// <returns><see langword="true"/> if this <see cref="Collection"/> is currently locked, <see langword="false"/> otherwise.</returns>
-    public async Task<bool> IsLockedAsync() => await _collectionProxy.GetLockedPropertyAsync();
+    public async Task<bool> IsLockedAsync() => await _collectionProxy.GetLockedAsync();
 
     /// <summary>
     /// Gets the unix timestamp of when this <see cref="Collection"/> was created.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Collection"/> was created.</returns>
-    public async Task<DateTimeOffset> GetCreatedAsync() => DateTimeOffset.FromUnixTimeSeconds((long)await _collectionProxy.GetCreatedPropertyAsync());
+    public async Task<DateTimeOffset> GetCreatedAsync() => DateTimeOffset.FromUnixTimeSeconds((long)await _collectionProxy.GetCreatedAsync());
 
     /// <summary>
     /// Gets the unix timestamp of when this <see cref="Collection"/> was last modified.
     /// </summary>
     /// <returns>The unix timestamp of when this <see cref="Collection"/> was last modified.</returns>
-    public async Task<DateTimeOffset> GetModifiedAsync() => DateTimeOffset.FromUnixTimeSeconds((long)await _collectionProxy.GetModifiedPropertyAsync());
+    public async Task<DateTimeOffset> GetModifiedAsync() => DateTimeOffset.FromUnixTimeSeconds((long)await _collectionProxy.GetModifiedAsync());
 
     #endregion
 
