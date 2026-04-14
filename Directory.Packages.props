@@ -4,7 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.21.3" />
-    <PackageVersion Include="Tmds.DBus.SourceGenerator" Version="0.0.22" />
+    <PackageVersion Include="Tmds.DBus.Generator" Version="0.92.0" />
+    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.92.0" />
   </ItemGroup>
 </Project>
