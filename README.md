@@ -2,7 +2,7 @@
 
 High-level .NET bindings for the [D-Bus Secret Service API](https://specifications.freedesktop.org/secret-service/latest/).
 
-These bindings were made using [Tmds.DBus.Protocol](https://github.com/tmds/Tmds.DBus) and [Tmds.DBus.SourceGenerator](https://github.com/affederaffe/Tmds.DBus.SourceGenerator), making them trimmer and AOT friendly.
+These bindings were made using [Tmds.DBus.Protocol](https://tmds.github.io/Tmds.DBus) and [Tmds.DBus.Generator](https://tmds.github.io/Tmds.DBus/generator.html), making them trimmer and AOT friendly.
 
 ## Requirements
 
@@ -63,7 +63,7 @@ foreach (Item matchedItem in matchedItems)
 
 The API documentation is auto-generated using [docfx](https://dotnet.github.io/docfx/index.html), and can be found [here](https://ace4896.github.io/DBus.Services.Secrets/).
 
-To preview the generated documentation locally, run `docfx docfx_project/docfx.json --serve`, which will serve the website at http://localhost:8080.
+To preview the generated documentation locally, run `docfx docfx_project/docfx.json --serve`, which will serve the website at [http://localhost:8080](http://localhost:8080).
 
 ## License
 
