@@ -15,10 +15,10 @@ public sealed class SecretService
 {
     private OrgFreedesktopSecretServiceProxy _serviceProxy;
 
-    private Connection _connection;
+    private DBusConnection _connection;
     private ISession _session;
 
-    internal SecretService(Connection connection, ISession session)
+    internal SecretService(DBusConnection connection, ISession session)
     {
         _connection = connection;
         _session = session;
@@ -48,7 +48,7 @@ public sealed class SecretService
     /// <returns>A new instance of the <see cref="SecretService"/> class.</returns>
     public static async Task<SecretService> ConnectAsync(EncryptionType encryptionType)
     {
-        Connection connection = new(Address.Session!);
+        DBusConnection connection = new(Address.Session!);
         await connection.ConnectAsync();
 
         // Open a new session based on the specified encryption type

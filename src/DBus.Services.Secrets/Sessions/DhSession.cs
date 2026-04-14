@@ -22,7 +22,7 @@ internal sealed class DhSession : ISession
         _aesKey = aesKey;
     }
 
-    internal static async Task<DhSession> OpenDhSessionAsync(Connection connection)
+    internal static async Task<DhSession> OpenDhSessionAsync(DBusConnection connection)
     {
         OrgFreedesktopSecretServiceProxy serviceProxy = new OrgFreedesktopSecretServiceProxy(connection, Constants.ServiceName, Constants.ServicePath);
 

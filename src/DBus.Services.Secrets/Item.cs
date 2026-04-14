@@ -54,7 +54,7 @@ public sealed class Item
 {
     private OrgFreedesktopSecretItemProxy _itemProxy;
 
-    private Connection _connection;
+    private DBusConnection _connection;
     private ISession _session;
 
     /// <value>
@@ -62,7 +62,7 @@ public sealed class Item
     /// </value>
     public ObjectPath ItemPath { get; }
 
-    internal Item(Connection connection, ISession session, ObjectPath itemPath)
+    internal Item(DBusConnection connection, ISession session, ObjectPath itemPath)
     {
         _connection = connection;
         _session = session;
