@@ -5,6 +5,6 @@
   <ItemGroup>
     <PackageVersion Include="Required" Version="1.0.0" />
     <PackageVersion Include="Tmds.DBus.Generator" Version="0.92.0" />
-    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.92.0" />
+    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.93.0" />
   </ItemGroup>
 </Project>
