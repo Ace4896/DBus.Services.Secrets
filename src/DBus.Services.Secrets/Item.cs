@@ -77,7 +77,7 @@ public sealed class Item
     /// </summary>
     /// <returns>All properties for this <see cref="Item"/>.</returns>
     public async Task<ItemProperties> GetAllPropertiesAsync() =>
-        new ItemProperties((await _itemProxy.GetPropertiesAsync()).EnsureAllPropertiesSet());
+        new ItemProperties(await _itemProxy.GetPropertiesAsync());
 
     /// <summary>
     /// Checks whether this <see cref="Item"/> is currently locked.
