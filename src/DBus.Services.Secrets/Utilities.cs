@@ -1,3 +1,5 @@
+using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Tmds.DBus.Protocol;
 
@@ -42,19 +44,8 @@ internal static class Utilities
         TaskCompletionSource<(bool, VariantValue)> tcs = new();
         Generated.Prompt promptProxy = new(connection, Constants.ServiceName, promptPath);
 
-        await promptProxy.WatchCompletedAsync(
-            (exception, result) =>
-            {
-                if (exception != null)
-                {
-                    tcs.TrySetException(exception);
-                }
-                else
-                {
-                    tcs.TrySetResult(result);
-                }
-            }
-        );
+        using IDisposable observer = await promptProxy.WatchCompletedAsync(
+            notification => tcs.SetResult((notification.Dismissed, notification.Result)));
 
         await promptProxy.PromptAsync(windowId);
 
