@@ -3,5 +3,13 @@
   "extends": ["config:best-practices", ":dependencyDashboard"],
   "timezone": "Europe/London",
   "schedule": "* 9-18 * * *",
-  "minimumReleaseAge": "2 weeks"
+  "minimumReleaseAge": "2 weeks",
+  "packageRules": [
+    {
+      "groupName": "Tmds.DBus Packages",
+      "groupSlug": "tmds-dbus",
+      "description": "Group Tmds.DBus package updates",
+      "matchPackageNames": ["Tmds.DBus**"]
+    }
+  ]
 }
