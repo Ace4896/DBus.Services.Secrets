@@ -81,7 +81,7 @@ public sealed class Collection
     /// </summary>
     /// <returns>All properties for this <see cref="Collection"/>.</returns>
     public async Task<CollectionProperties> GetAllPropertiesAsync() =>
-        new CollectionProperties((await _collectionProxy.GetPropertiesAsync()).EnsureAllPropertiesSet(), _connection, _session);
+        new CollectionProperties(await _collectionProxy.GetPropertiesAsync(), _connection, _session);
 
     /// <summary>
     /// Gets all <see cref="Item"/>s in this collection.
