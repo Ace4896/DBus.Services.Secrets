@@ -6,10 +6,17 @@
   "minimumReleaseAge": "2 weeks",
   "packageRules": [
     {
-      "groupName": "Tmds.DBus Packages",
-      "groupSlug": "tmds-dbus",
       "description": "Group Tmds.DBus package updates",
-      "matchPackageNames": ["Tmds.DBus**"]
+      "matchDatasources": ["nuget"],
+      "matchPackageNames": ["Tmds.DBus**"],
+      "groupName": "Tmds.DBus Packages",
+      "groupSlug": "tmds-dbus"
+    },
+    {
+      "description": "Disable abandonment warning for 'Required' package on NuGet (considered feature-complete)",
+      "matchDatasources": ["nuget"],
+      "matchPackageNames": ["Required"],
+      "abandonmentThreshold": null
     }
   ]
 }
