@@ -2,7 +2,7 @@
 
 High-level .NET bindings for the [D-Bus Secret Service API](https://specifications.freedesktop.org/secret-service/latest/).
 
-These bindings were made using [Tmds.DBus.Protocol](https://tmds.github.io/Tmds.DBus) and [Tmds.DBus.Generator](https://tmds.github.io/Tmds.DBus/generator.html), making them trimmer and AOT friendly.
+These bindings were made using [`Tmds.DBus.Protocol` and `Tmds.DBus.Generator`](https://tmds.github.io/Tmds.DBus), making them trimmer and AOT friendly.
 
 ## Requirements
 
